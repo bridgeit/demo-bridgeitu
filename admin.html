@@ -65,6 +65,9 @@
             margin-left:10px;
             padding:8px;
         }
+
+        /* style for modal login */
+        .modal-footer {   border-top: 0px; }
     </style>
 
 </head>
@@ -84,7 +87,7 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a data-toggle="modal" href="#loginModal"><i class="glyphicon glyphicon-lock"></i> Login</a></li>
+            <li><a id="loginIcon" data-toggle="modal" href="#loginModal"><i class="glyphicon glyphicon-lock"></i> Login</a></li>
           </ul>
         </div>
     </div><!-- /container -->
@@ -193,7 +196,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetFormCSS(document.getElementById('edtEvntFrm'));">×</button>
             <h4 class="modal-title">Edit Event</h4>
           </div>
           <div class="modal-body">
@@ -236,26 +239,26 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">×</button>
               <h1 class="text-center">Login</h1>
             </div>
             <div class="modal-body">
-              <form class="form col-md-12 center-block">
+              <form id="loginModalForm" class="form col-md-12 center-block">
                 <div class="form-group">
-                  <input type="text" class="form-control input-lg" placeholder="Email">
+                  <input type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
                   <input type="password" class="form-control input-lg" placeholder="Password">
                 </div>
                 <div class="form-group">
-                  <button class="btn btn-primary btn-lg btn-block">Sign In</button>
-                  <span class="pull-right"><a href="#">Register</a></span><span><a href="#">Need help?</a></span>
+                  <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
+                  <!--<span class="pull-right"><a href="#">Register</a></span><span><a href="#">Need help?</a></span>-->
                 </div>
               </form>
             </div>
             <div class="modal-footer">
               <div class="col-md-12">
-              <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">Cancel</button>
             </div>
             </div>
         </div>
@@ -271,8 +274,8 @@
     $(document).ready(function() {
 
         // Automatic auth service login with user that has u.admin, bridgeit.doc.saveDocument, bridgeit.doc.getDocument, bridgeit.doc.deleteDocument and bridgeit.doc.updateDocument permissions */
-        $.getJSON('http://dev.bridgeit.io/auth/bridgeit.u/token/local?username=susie_walton&password=myhorseismypony', function(data){
-            window.ACCESS_TOKEN = '?access_token=' + data.access_token;
+        $.getJSON(window.authService + 'username=susie_walton&password=myhorseismypony', function(data){
+            window.tokenLoggedIn = '?access_token=' + data.access_token;
             retrieveEventsAdmin();
         })
         .fail(bridgeitUFail)
@@ -280,18 +283,16 @@
 
         $('#crtEvntFrm').submit(function( event ) {
             event.preventDefault();
-
             var postData = {};
             /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
             *  In this case, trying to generically create json objects from a form's input fields
             */
             var form = this;
-
-            if( validate(form)){
+            if(validate(form)){
                 postData['name'] = form[0].value;
                 postData['details'] = form[1].value;
                 $.ajax({
-                    url : window.documentService + window.ACCESS_TOKEN,
+                    url : window.documentService + window.tokenLoggedIn,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -301,6 +302,8 @@
                 .done(createDone);
             }
         });
+
+        initLoginModalSubmit();
     });
 
 </script>

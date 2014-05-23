@@ -65,6 +65,9 @@
             margin-left:10px;
             padding:8px;
         }
+
+        /* style for modal login */
+        .modal-footer {   border-top: 0px; }
     </style>
 
 </head>
@@ -84,7 +87,7 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a data-toggle="modal" href="#loginModal"><i class="glyphicon glyphicon-lock"></i> Login</a></li>
+            <li><a id="loginIcon" data-toggle="modal" href="#loginModal"><i class="glyphicon glyphicon-lock"></i> Login</a></li>
           </ul>
         </div>
     </div><!-- /container -->
@@ -166,26 +169,26 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">×</button>
               <h1 class="text-center">Login</h1>
             </div>
             <div class="modal-body">
-              <form class="form col-md-12 center-block">
+              <form id="loginModalForm" class="form col-md-12 center-block">
                 <div class="form-group">
-                  <input type="text" class="form-control input-lg" placeholder="Email">
+                  <input type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
                   <input type="password" class="form-control input-lg" placeholder="Password">
                 </div>
                 <div class="form-group">
-                  <button class="btn btn-primary btn-lg btn-block">Sign In</button>
-                  <span class="pull-right"><a href="#">Register</a></span><span><a href="#">Need help?</a></span>
+                  <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
+                  <!--<span class="pull-right"><a href="#">Register</a></span><span><a href="#">Need help?</a></span>-->
                 </div>
               </form>
             </div>
             <div class="modal-footer">
               <div class="col-md-12">
-              <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">Cancel</button>
             </div>
             </div>
         </div>
@@ -200,13 +203,15 @@
 
     $(document).ready(function() {
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
-        $.getJSON('http://dev.bridgeit.io/auth/bridgeit.u/token/local?username=anonymous&password=anonymous', function(data){
-            window.ANONYMOUS_ACCESS_TOKEN = '?access_token=' + data.access_token;
+        $.getJSON(window.authService + 'username=anonymous&password=anonymous', function(data){
+            window.tokenAnonymousAccess = '?access_token=' + data.access_token;
             retrieveEvents();
         })
         .fail(bridgeitUFail)
         .done(retrieveDone);
     });
+
+    initLoginModalSubmit();
 
 </script>
 </body>
