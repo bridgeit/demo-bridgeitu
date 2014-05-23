@@ -1,5 +1,7 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
+// Token obtained automatically to view events in the index.html screen without a login
 window.ANONYMOUS_ACCESS_TOKEN;
+// Token obtained from a login
 window.ACCESS_TOKEN;
 
 function retrieveEvents(){
@@ -73,7 +75,7 @@ function launchEditEvent(documentId){
 
 function bridgeitUFail(jqxhr, textStatus, errorThrown){
     alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
-};
+}
 
 function bridgeitUFailRetrieve404(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 404){
@@ -82,7 +84,7 @@ function bridgeitUFailRetrieve404(jqxhr, textStatus, errorThrown){
         return;
     }
     alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
-};
+}
 
 function retrieveDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
