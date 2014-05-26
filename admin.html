@@ -235,11 +235,12 @@
 </div><!-- /.modal -->
 
 <!--login modal-->
-<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true"
+     data-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">×</button>
+              <button id="loginCloseBttn" type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">×</button>
               <h1 class="text-center">Login</h1>
             </div>
             <div class="modal-body">
@@ -258,7 +259,7 @@
             </div>
             <div class="modal-footer">
               <div class="col-md-12">
-              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">Cancel</button>
+              <button id="loginCancelBttn" class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">Cancel</button>
             </div>
             </div>
         </div>
@@ -273,13 +274,11 @@
 
     $(document).ready(function() {
 
-        // Automatic auth service login with user that has u.admin, bridgeit.doc.saveDocument, bridgeit.doc.getDocument, bridgeit.doc.deleteDocument and bridgeit.doc.updateDocument permissions */
-        $.getJSON(window.authService + 'username=susie_walton&password=myhorseismypony', function(data){
-            window.tokenLoggedIn = '?access_token=' + data.access_token;
-            retrieveEventsAdmin();
-        })
-        .fail(bridgeitUFail)
-        .done(retrieveDone);
+        // Admin page so show modal login and initially hide close and cancel buttons to force login
+        $('#loginModal').modal('show');
+        $('#loginCloseBttn').hide();
+        $('#loginCancelBttn').hide();
+        initLoginSubmit('admin');
 
         $('#crtEvntFrm').submit(function( event ) {
             event.preventDefault();
@@ -292,7 +291,7 @@
                 postData['name'] = form[0].value;
                 postData['details'] = form[1].value;
                 $.ajax({
-                    url : window.documentService + window.tokenLoggedIn,
+                    url : window.documentService + '?access_token=' + window.tokenLoggedIn,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -303,7 +302,6 @@
             }
         });
 
-        initLoginModalSubmit();
     });
 
 </script>

@@ -1,36 +1,56 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local?';
-window.loggedIn;
+window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/permissions';
 // Token obtained automatically to view events in the index.html screen without a login
 window.tokenAnonymousAccess;
 // Token obtained from a login
 window.tokenLoggedIn;
 
 // Common login logic for both index.html and admin.html
-function initLoginModalSubmit(){
+function initLoginSubmit(admin){
     $('#loginModalForm').submit(function( event ) {
         event.preventDefault();
         /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-        *  In this case, trying to generically create url from a form's input fields
+        *  In this case, generically creating url from a form's input fields
         */
         var form = this;
-        if( validate(form)){
+        if(validate(form)){
             $.getJSON(window.authService + 'username=' + form[0].value + '&password=' + form[1].value, function(data){
                 window.tokenLoggedIn = data.access_token;
-                window.loggedIn = true;
+                if(admin){
+                    // Check that user has admin permissions
+                    var postData = {};
+                    postData['access_token'] = window.tokenLoggedIn;
+                    postData['permissions'] = 'u.admin';
+                    $.ajax({
+                        url : window.authServicePermissions,
+                        type: 'POST',
+                        dataType : 'json',
+                        contentType: 'application/json; charset=utf-8',
+                        data : JSON.stringify(postData)
+                    })
+                    .fail(bridgeitUFail)
+                    .done(adminPermissionDone);
+                }else{
+                    // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
+                    // Login is required to retrieve a token so purchases can be made
+                    uiLoggedIn();
+                }
             })
             .fail(bridgeitULoginFail)
             .done(retrieveDone);
-
-            $('#loginModal').modal('hide');
-            $('#loginIcon').html('Welcome: ' + form[0].value);
-            resetLoginForm();
         }
     });
 }
 
+function uiLoggedIn(){
+    $('#loginModal').modal('hide');
+    $('#loginIcon').html('Welcome: ' + $('#userName').val());
+    resetLoginForm();
+}
+
 function retrieveEvents(){
-    $.getJSON(window.documentService + window.tokenAnonymousAccess , function(data){
+    $.getJSON(window.documentService + '?access_token=' + window.tokenAnonymousAccess , function(data){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
@@ -42,7 +62,7 @@ function retrieveEvents(){
 }
 
 function purchase(documentId){
-    if(window.loggedIn){
+    if(window.tokenLoggedIn){
         alert('Purchase Flow to Take Place Soon!');
     }else{
         $('#loginModal').modal('show');
@@ -50,7 +70,7 @@ function purchase(documentId){
 }
 
 function retrieveEventsAdmin(){
-    $.getJSON(window.documentService + window.tokenLoggedIn , function(data){
+    $.getJSON(window.documentService + '?access_token=' + window.tokenLoggedIn , function(data){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
@@ -64,7 +84,7 @@ function retrieveEventsAdmin(){
 function deleteEvent(documentId){
     if (confirm("Delete Event?")){
         $.ajax({
-            url : window.documentService + '/' + documentId + window.tokenLoggedIn,
+            url : window.documentService + '/' + documentId +  '?access_token=' + window.tokenLoggedIn,
             type: 'DELETE',
             contentType: 'application/json; charset=utf-8',
             dataType: 'json'
@@ -75,7 +95,7 @@ function deleteEvent(documentId){
 }
 
 function launchEditEvent(documentId){
-    $.getJSON( window.documentService + '/' + documentId + window.tokenLoggedIn + '&results=one', function(data){
+    $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one', function(data){
         document.getElementById('edtName').value = data.name;
         document.getElementById('edtDetails').value = data.details;
         $('#edtEvntFrm').off('submit').on('submit',(function( event ) {
@@ -91,7 +111,7 @@ function launchEditEvent(documentId){
                 putData['name'] = form[0].value;
                 putData['details'] = form[1].value;
                 $.ajax({
-                    url : window.documentService + '/' + documentId + window.tokenLoggedIn,
+                    url : window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn,
                     type: 'PUT',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -113,18 +133,19 @@ function bridgeitUFail(jqxhr, textStatus, errorThrown){
 function bridgeitULoginFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         alert("Invalid Credentials");
-        return;
+    }else{
+        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
     }
-    alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
 }
 
 function bridgeitUFailRetrieve404(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 404){
+        // 404 means the list is empty
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
-        return;
+    }else{
+        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
     }
-    alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
 }
 
 function retrieveDone(data, textStatus, jqxhr){
@@ -162,6 +183,20 @@ function editDone(data, textStatus, jqxhr){
     }
     else{
         alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function adminPermissionDone(){
+    if(jqxhr.status == 201){
+        retrieveEventsAdmin();
+        // Admin screen has login cancel buttons hidden to force login.  After logging in as admin show cancel buttons.
+        $('#loginCloseBttn').modal('show');
+        $('#loginCancelBttn').modal('show');
+        uiLoggedIn();
+    }
+    else{
+        window.tokenLoggedIn = null;
+        alert('Invalid Login - you are not an administrator');
     }
 }
 

@@ -175,7 +175,7 @@
             <div class="modal-body">
               <form id="loginModalForm" class="form col-md-12 center-block">
                 <div class="form-group">
-                  <input type="text" class="form-control input-lg" placeholder="Username">
+                  <input id="userName" type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
                   <input type="password" class="form-control input-lg" placeholder="Password">
@@ -204,14 +204,14 @@
     $(document).ready(function() {
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
         $.getJSON(window.authService + 'username=anonymous&password=anonymous', function(data){
-            window.tokenAnonymousAccess = '?access_token=' + data.access_token;
+            window.tokenAnonymousAccess = data.access_token;
             retrieveEvents();
         })
         .fail(bridgeitUFail)
         .done(retrieveDone);
     });
 
-    initLoginModalSubmit();
+    initLoginSubmit();
 
 </script>
 </body>
