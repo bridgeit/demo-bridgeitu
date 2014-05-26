@@ -1,6 +1,6 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local?';
-window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/permissions';
+window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 // Token obtained automatically to view events in the index.html screen without a login
 window.tokenAnonymousAccess;
 // Token obtained from a login
@@ -29,7 +29,7 @@ function initLoginSubmit(admin){
                         contentType: 'application/json; charset=utf-8',
                         data : JSON.stringify(postData)
                     })
-                    .fail(bridgeitUFail)
+                    .fail(adminPermissionFail)
                     .done(adminPermissionDone);
                 }else{
                     // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
@@ -44,9 +44,9 @@ function initLoginSubmit(admin){
 }
 
 function uiLoggedIn(){
-    $('#loginModal').modal('hide');
     $('#loginIcon').html('Welcome: ' + $('#userName').val());
     resetLoginForm();
+    $('#loginModal').modal('hide');
 }
 
 function retrieveEvents(){
@@ -132,6 +132,7 @@ function bridgeitUFail(jqxhr, textStatus, errorThrown){
 
 function bridgeitULoginFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
+        // 401 unauthorized
         alert("Invalid Credentials");
     }else{
         alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
@@ -186,17 +187,25 @@ function editDone(data, textStatus, jqxhr){
     }
 }
 
-function adminPermissionDone(){
-    if(jqxhr.status == 201){
+function adminPermissionDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 200){
         retrieveEventsAdmin();
         // Admin screen has login cancel buttons hidden to force login.  After logging in as admin show cancel buttons.
-        $('#loginCloseBttn').modal('show');
-        $('#loginCancelBttn').modal('show');
+        $('#loginCloseBttn').show();
+        $('#loginCancelBttn').show();
         uiLoggedIn();
+    }else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
     }
-    else{
+}
+
+function adminPermissionFail(jqxhr, textStatus, errorThrown){
+    if(jqxhr.status == 401){
+        // 401 unauthorized
         window.tokenLoggedIn = null;
         alert('Invalid Login - you are not an administrator');
+    }else{
+        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
     }
 }
 
