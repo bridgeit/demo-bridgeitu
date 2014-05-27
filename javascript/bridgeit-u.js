@@ -1,11 +1,12 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
-window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local?';
+window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 // Token obtained automatically to view events in the index.html screen without a login
 window.tokenAnonymousAccess;
 // Token obtained from a login
 window.tokenLoggedIn;
 
+// TODO: Use closure to pass in admin boolean to avoid code duplication
 function studentLoginSubmit(){
     $('#loginModalForm').submit(function( event ) {
         event.preventDefault();
@@ -14,7 +15,15 @@ function studentLoginSubmit(){
         */
         var form = this;
         if(validate(form)){
-            $.getJSON(window.authService + 'username=' + form[0].value + '&password=' + form[1].value)
+            var postData = {'username' : form[0].value,
+                            'password' : form[1].value};
+            $.ajax({
+                url : window.authService,
+                type: 'POST',
+                dataType : 'json',
+                contentType: 'application/json; charset=utf-8',
+                data : JSON.stringify(postData)
+            })
             .fail(loginFail)
             .done(studentLoginDone);
         }
@@ -29,7 +38,15 @@ function adminLoginSubmit(){
         */
         var form = this;
         if(validate(form)){
-            $.getJSON(window.authService + 'username=' + form[0].value + '&password=' + form[1].value)
+            var postData = {'username' : form[0].value,
+                            'password' : form[1].value};
+            $.ajax({
+                url : window.authService,
+                type: 'POST',
+                dataType : 'json',
+                contentType: 'application/json; charset=utf-8',
+                data : JSON.stringify(postData)
+            })
             .fail(loginFail)
             .done(adminLoginDone);
         }
@@ -169,6 +186,7 @@ function purchaseEvent(documentId){
 
 function purchaseGetEventDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
+        $('#purchaseBttn').show();
         document.getElementById('ticketsName').value = data.name;
         document.getElementById('ticketsDetails').value = data.details;
         $('#ticketsEvntFrm').off('submit').on('submit',(function( event ) {
@@ -202,6 +220,7 @@ function purchaseEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 201){
         alert('Tickets Purchased.');
         $('#ticketsEvntFrm')[0].reset();
+        $('#purchaseBttn').hide();
     }
     else{
         alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");

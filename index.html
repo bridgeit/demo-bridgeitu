@@ -170,7 +170,7 @@
                                 <div class="control-group">
                                     <label></label>
                                     <div class="controls">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button id="purchaseBttn" type="submit" class="btn btn-primary">
                                       Purchase
                                     </button>
                                     </div>
@@ -261,9 +261,17 @@
     $(document).ready(function() {
 
         $('#ticketsPanel').hide();
-
+        $('#purchaseBttn').hide();
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
-        $.getJSON(window.authService + 'username=anonymous&password=anonymous')
+        var postData = {'username' : 'anonymous',
+                        'password' : 'anonymous'};
+        $.ajax({
+            url : window.authService,
+            type: 'POST',
+            dataType : 'json',
+            contentType: 'application/json; charset=utf-8',
+            data : JSON.stringify(postData)
+        })
         .fail(requestFail)
         .done(anonymousLoginDone);
     });
