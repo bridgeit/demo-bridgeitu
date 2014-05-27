@@ -6,8 +6,7 @@ window.tokenAnonymousAccess;
 // Token obtained from a login
 window.tokenLoggedIn;
 
-// Common login logic for both index.html and admin.html
-function initLoginSubmit(admin){
+function studentLoginSubmit(){
     $('#loginModalForm').submit(function( event ) {
         event.preventDefault();
         /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
@@ -15,175 +14,76 @@ function initLoginSubmit(admin){
         */
         var form = this;
         if(validate(form)){
-            $.getJSON(window.authService + 'username=' + form[0].value + '&password=' + form[1].value, function(data){
-                window.tokenLoggedIn = data.access_token;
-                if(admin){
-                    // Check that user has admin permissions
-                    var postData = {};
-                    postData['access_token'] = window.tokenLoggedIn;
-                    postData['permissions'] = 'u.admin';
-                    $.ajax({
-                        url : window.authServicePermissions,
-                        type: 'POST',
-                        dataType : 'json',
-                        contentType: 'application/json; charset=utf-8',
-                        data : JSON.stringify(postData)
-                    })
-                    .fail(adminPermissionFail)
-                    .done(adminPermissionDone);
-                }else{
-                    // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
-                    // Login is required to retrieve a token so purchases can be made
-                    uiLoggedIn();
-                }
-            })
-            .fail(bridgeitULoginFail)
-            .done(retrieveDone);
+            $.getJSON(window.authService + 'username=' + form[0].value + '&password=' + form[1].value)
+            .fail(loginFail)
+            .done(studentLoginDone);
         }
     });
 }
 
-function uiLoggedIn(){
-    $('#loginIcon').html('Welcome: ' + $('#userName').val());
-    resetLoginForm();
-    $('#loginModal').modal('hide');
+function adminLoginSubmit(){
+    $('#loginModalForm').submit(function( event ) {
+        event.preventDefault();
+        /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
+        *  In this case, generically creating url from a form's input fields
+        */
+        var form = this;
+        if(validate(form)){
+            $.getJSON(window.authService + 'username=' + form[0].value + '&password=' + form[1].value)
+            .fail(loginFail)
+            .done(adminLoginDone);
+        }
+    });
 }
 
-function retrieveEvents(){
-    $.getJSON(window.documentService + '?access_token=' + window.tokenAnonymousAccess , function(data){
-        var evntLstDiv = $('#evntLst');
-        evntLstDiv.html("");
-        $.each(data, function(i, obj) {
-            evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchase(\'' + obj._id + '\');">' + obj.name + '</a>');
-        });
-    })
-    .fail(bridgeitUFailRetrieve404)
-    .done(retrieveDone);
-}
-
-function purchase(documentId){
-    if(window.tokenLoggedIn){
-        alert('Purchase Flow to Take Place Soon!');
+function anonymousLoginDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        window.tokenAnonymousAccess = data.access_token;
+        retrieveEvents();
     }else{
-        $('#loginModal').modal('show');
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
     }
 }
 
-function retrieveEventsAdmin(){
-    $.getJSON(window.documentService + '?access_token=' + window.tokenLoggedIn , function(data){
-        var evntLstDiv = $('#evntLst');
-        evntLstDiv.html("");
-        $.each(data, function(i, obj) {
-            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" style="float: right;"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="launchEditEvent(\'' + obj._id + '\');" style="float: right;"><span class="glyphicon glyphicon-edit"></span></a></div>');
-        });
-    })
-    .fail(bridgeitUFailRetrieve404)
-    .done(retrieveDone);
+function studentLoginDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        window.tokenLoggedIn = data.access_token;
+        // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
+        // Login is required to retrieve a token so purchases can be made
+        uiLoggedIn();
+        $('#ticketsPanel').show();
+    }else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
 }
 
-function deleteEvent(documentId){
-    if (confirm("Delete Event?")){
+function adminLoginDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        window.tokenLoggedIn = data.access_token;
+        // Check that user has admin permissions
+        var postData = {};
+        postData['access_token'] = window.tokenLoggedIn;
+        postData['permissions'] = 'u.admin';
         $.ajax({
-            url : window.documentService + '/' + documentId +  '?access_token=' + window.tokenLoggedIn,
-            type: 'DELETE',
+            url : window.authServicePermissions,
+            type: 'POST',
+            dataType : 'json',
             contentType: 'application/json; charset=utf-8',
-            dataType: 'json'
+            data : JSON.stringify(postData)
         })
-        .fail(bridgeitUFail)
-        .done(deleteDone);
+        .fail(adminPermissionFail)
+        .done(adminPermissionDone);
+    }else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
     }
 }
 
-function launchEditEvent(documentId){
-    $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one', function(data){
-        document.getElementById('edtName').value = data.name;
-        document.getElementById('edtDetails').value = data.details;
-        $('#edtEvntFrm').off('submit').on('submit',(function( event ) {
-            event.preventDefault();
-
-            var putData = {};
-            /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-            *  In this case, trying to generically create json objects from a form's input fields
-            */
-            var form = this;
-
-            if(validate(form)){
-                putData['name'] = form[0].value;
-                putData['details'] = form[1].value;
-                $.ajax({
-                    url : window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn,
-                    type: 'PUT',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(putData)
-                })
-                .fail(bridgeitUFail)
-                .done(editDone);
-            }
-        }));
-    })
-    .fail(bridgeitUFail)
-    .done(retrieveDone);
-}
-
-function bridgeitUFail(jqxhr, textStatus, errorThrown){
-    alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
-}
-
-function bridgeitULoginFail(jqxhr, textStatus, errorThrown){
+function loginFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
         alert("Invalid Credentials");
     }else{
         alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
-    }
-}
-
-function bridgeitUFailRetrieve404(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status == 404){
-        // 404 means the list is empty
-        var evntLstDiv = $('#evntLst');
-        evntLstDiv.html("");
-    }else{
-        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
-    }
-}
-
-function retrieveDone(data, textStatus, jqxhr){
-    if( jqxhr.status == 200){
-
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
-    }
-}
-
-function createDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 201){
-        $('#crtEvntFrm')[0].reset();
-        retrieveEventsAdmin();
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
-    }
-}
-
-function deleteDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 204){
-        retrieveEventsAdmin();
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
-    }
-}
-
-function editDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 204){
-        $('#editModal').modal('hide');
-        retrieveEventsAdmin();
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
     }
 }
 
@@ -209,6 +109,187 @@ function adminPermissionFail(jqxhr, textStatus, errorThrown){
     }
 }
 
+function retrieveEvents(){
+    $.getJSON(window.documentService + '?access_token=' + window.tokenAnonymousAccess)
+    .fail(retrieveEventsFail)
+    .done(retrieveEventsDone);
+}
+
+function retrieveEventsAdmin(){
+    $.getJSON(window.documentService + '?access_token=' + window.tokenLoggedIn)
+    .fail(retrieveEventsFail)
+    .done(adminRetrieveEventsDone);
+}
+
+function retrieveEventsFail(jqxhr, textStatus, errorThrown){
+    if(jqxhr.status == 404){
+        // 404 means the list is empty
+        var evntLstDiv = $('#evntLst');
+        evntLstDiv.html("");
+    }else{
+        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
+    }
+}
+
+function retrieveEventsDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        var evntLstDiv = $('#evntLst');
+        evntLstDiv.html("");
+        $.each(data, function(i, obj) {
+            evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
+        });
+    }
+    else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function adminRetrieveEventsDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        var evntLstDiv = $('#evntLst');
+        evntLstDiv.html("");
+        $.each(data, function(i, obj) {
+            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" style="float: right;"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" style="float: right;"><span class="glyphicon glyphicon-edit"></span></a></div>');
+        });
+    }
+    else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function purchaseEvent(documentId){
+    if(window.tokenLoggedIn){
+        $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one')
+        .fail(requestFail)
+        .done(purchaseGetEventDone);
+    }else{
+        $('#loginModal').modal('show');
+    }
+}
+
+function purchaseGetEventDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        document.getElementById('ticketsName').value = data.name;
+        document.getElementById('ticketsDetails').value = data.details;
+        $('#ticketsEvntFrm').off('submit').on('submit',(function( event ) {
+            event.preventDefault();
+            /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
+            *  In this case, trying to generically create json objects from a form's input fields
+            */
+            var form = this;
+            if(validate(form)){
+                var postData = {};
+                postData['access_token'] = window.tokenLoggedIn;
+                postData['name'] = form[0].value;
+                postData['quantity'] = form[1].value;
+                $.ajax({
+                    url : window.documentService + '?access_token=' + window.tokenLoggedIn,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(requestFail)
+                .done(purchaseEventDone);
+            }
+        }));
+    }else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function purchaseEventDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 201){
+        alert('Tickets Purchased.');
+        $('#ticketsEvntFrm')[0].reset();
+    }
+    else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function deleteEvent(documentId){
+    if (confirm("Delete Event?")){
+        $.ajax({
+            url : window.documentService + '/' + documentId +  '?access_token=' + window.tokenLoggedIn,
+            type: 'DELETE',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json'
+        })
+        .fail(requestFail)
+        .done(deleteDone);
+    }
+}
+
+function deleteDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 204){
+        retrieveEventsAdmin();
+    }
+    else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function editEvent(documentId){
+    $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one')
+    .fail(requestFail)
+    .done(editGetEventDone);
+}
+
+function editGetEventDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        document.getElementById('edtName').value = data.name;
+        document.getElementById('edtDetails').value = data.details;
+        $('#edtEvntFrm').off('submit').on('submit',(function( event ) {
+            event.preventDefault();
+            /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
+            *  In this case, trying to generically create json objects from a form's input fields
+            */
+            var form = this;
+            if(validate(form)){
+                var putData = {};
+                putData['name'] = form[0].value;
+                putData['details'] = form[1].value;
+                $.ajax({
+                    url : window.documentService + '/' + data._id + '?access_token=' + window.tokenLoggedIn,
+                    type: 'PUT',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(putData)
+                })
+                .fail(requestFail)
+                .done(editEventDone);
+            }
+        }));
+    }else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function editEventDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 204){
+        $('#editModal').modal('hide');
+        retrieveEventsAdmin();
+    }
+    else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function createEventDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 201){
+        $('#crtEvntFrm')[0].reset();
+        retrieveEventsAdmin();
+    }
+    else{
+        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }
+}
+
+function requestFail(jqxhr, textStatus, errorThrown){
+    alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
+}
+
 function validate(form){
     /* Create and Edit forms have name and details 1st and second respectively
        instead of referencing by name, use order in the form to avoid duplicate id's
@@ -230,13 +311,19 @@ function validate(form){
     return formValid;
 }
 
-function resetFormCSS(form){
-    $(form[0]).parent('div').removeClass('has-error');
-    $(form[1]).parent('div').removeClass('has-error');
+function uiLoggedIn(){
+    $('#loginIcon').html('Welcome: ' + $('#userName').val());
+    resetLoginForm();
+    $('#loginModal').modal('hide');
 }
 
 function resetLoginForm(){
     var loginForm = document.getElementById('loginModalForm');
     loginForm.reset();
     resetFormCSS(loginForm);
+}
+
+function resetFormCSS(form){
+    $(form[0]).parent('div').removeClass('has-error');
+    $(form[1]).parent('div').removeClass('has-error');
 }

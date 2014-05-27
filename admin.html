@@ -278,16 +278,16 @@
         $('#loginModal').modal('show');
         $('#loginCloseBttn').hide();
         $('#loginCancelBttn').hide();
-        initLoginSubmit('admin');
+        adminLoginSubmit();
 
         $('#crtEvntFrm').submit(function( event ) {
             event.preventDefault();
-            var postData = {};
             /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
             *  In this case, trying to generically create json objects from a form's input fields
             */
             var form = this;
             if(validate(form)){
+                var postData = {};
                 postData['name'] = form[0].value;
                 postData['details'] = form[1].value;
                 $.ajax({
@@ -297,8 +297,8 @@
                     contentType: 'application/json; charset=utf-8',
                     data : JSON.stringify(postData)
                 })
-                .fail(bridgeitUFail)
-                .done(createDone);
+                .fail(requestFail)
+                .done(createEventDone);
             }
         });
 

@@ -126,6 +126,62 @@
                 </div>
 
                 <div class="col-md-6">
+
+                    <div id="ticketsPanel" class="panel panel-default">
+                        <div class="panel-heading">
+                            <div class="panel-title">
+                            <i class="glyphicon glyphicon-usd pull-right"></i>
+                            <h4>Purchase Event Tickets</h4>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+
+                            <form id="ticketsEvntFrm" class="form form-vertical">
+
+                                <div class="control-group">
+                                  <label>Event Name</label>
+                                  <div class="controls">
+                                   <input id="ticketsName" name="ticketsName"
+                                          type="text"
+                                          class="form-control"
+                                          readonly>
+                                  </div>
+                                </div>
+
+                                <div class="control-group">
+                                  <label>Number of Tickets</label>
+                                  <div class="controls">
+                                   <input id="ticketsQuantity" name="ticketsQuantity"
+                                          type="text"
+                                          class="form-control"
+                                          placeholder="Enter # of Tickets">
+                                  </div>
+                                </div>
+
+                                <div class="control-group">
+                                  <label>Event Details</label>
+                                  <div class="controls">
+                                    <textarea id="ticketsDetails" name="ticketsDetails"
+                                              class="form-control"
+                                              readonly></textarea>
+                                  </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label></label>
+                                    <div class="controls">
+                                    <button type="submit" class="btn btn-primary">
+                                      Purchase
+                                    </button>
+                                    </div>
+                                </div>
+
+                            </form>
+
+
+                      </div>
+                    </div>
+
                     <div id="ntfctnsPnl" style='visibility: hidden;' class="panel panel-default">
                       <div class="panel-heading"><h4>Notifications</h4></div>
                       <div class="panel-body">
@@ -136,6 +192,7 @@
                       </div>
                       </div>
                     </div>
+
                 </div><!--/col-span-6-->
 
             </div><!--/row-->
@@ -202,16 +259,16 @@
 <script type='text/javascript'>
 
     $(document).ready(function() {
+
+        $('#ticketsPanel').hide();
+
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
-        $.getJSON(window.authService + 'username=anonymous&password=anonymous', function(data){
-            window.tokenAnonymousAccess = data.access_token;
-            retrieveEvents();
-        })
-        .fail(bridgeitUFail)
-        .done(retrieveDone);
+        $.getJSON(window.authService + 'username=anonymous&password=anonymous')
+        .fail(requestFail)
+        .done(anonymousLoginDone);
     });
 
-    initLoginSubmit();
+    studentLoginSubmit();
 
 </script>
 </body>
