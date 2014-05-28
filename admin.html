@@ -98,13 +98,20 @@
 <div class="container">
     <div class="row">
         <div class="col-md-3">
-          <!-- Left column -->
-          <ul class="nav nav-stacked">
-            <li class="active"><a href="http://bridgeit.mobi/" title="BridgeIt Website" target="_blank">BridgeIt Website</a></li>
-            <li><a href="http://github.com/bridgeit/" title="BridgeIt GitHub" target="_blank">BridgeIt GitHub</a></li>
-          </ul>
+            <!-- Left column -->
+            <ul class="nav nav-stacked">
+                <li class="active"><a href="http://bridgeit.mobi/" title="BridgeIt Website" target="_blank">BridgeIt Website</a></li>
+                <li><a href="http://github.com/bridgeit/" title="BridgeIt GitHub" target="_blank">BridgeIt GitHub</a></li>
+            </ul>
 
-          <hr>
+            <hr>
+
+            <div class="panel panel-default">
+                <div class="panel-heading"><h4>Notices</h4></div>
+                <div id="alertDiv" class="panel-body">
+                </div>
+            </div>
+
         </div>
 
         <div class="col-md-9">
@@ -171,16 +178,6 @@
                       </div>
                     </div>
 
-                    <div id="ntfctnsPnl" style='visibility: hidden;' class="panel panel-default">
-                      <div class="panel-heading"><h4>Notifications</h4></div>
-                      <div class="panel-body">
-
-                      <div class="alert alert-info">
-                        <button type="button" class="close" data-dismiss="alert">×</button>
-                        Event Notification.
-                      </div>
-                      </div>
-                    </div>
                 </div><!--/col-span-6-->
 
             </div><!--/row-->
@@ -273,35 +270,12 @@
 <script type='text/javascript'>
 
     $(document).ready(function() {
-
         // Admin page so show modal login and initially hide close and cancel buttons to force login
         $('#loginModal').modal('show');
         $('#loginCloseBttn').hide();
         $('#loginCancelBttn').hide();
         adminLoginSubmit();
-
-        $('#crtEvntFrm').submit(function( event ) {
-            event.preventDefault();
-            /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-            *  In this case, trying to generically create json objects from a form's input fields
-            */
-            var form = this;
-            if(validate(form)){
-                var postData = {};
-                postData['name'] = form[0].value;
-                postData['details'] = form[1].value;
-                $.ajax({
-                    url : window.documentService + '?access_token=' + window.tokenLoggedIn,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(requestFail)
-                .done(createEventDone);
-            }
-        });
-
+        createEventSubmit();
     });
 
 </script>

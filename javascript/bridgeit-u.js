@@ -2,9 +2,24 @@ window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 // Token obtained automatically to view events in the index.html screen without a login
-window.tokenAnonymousAccess;
+window.tokenAnonymousAccess = null;
 // Token obtained from a login
-window.tokenLoggedIn;
+window.tokenLoggedIn = null;
+
+function anonymousLogin(){
+    // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
+    var postData = {'username' : 'anonymous',
+                    'password' : 'anonymous'};
+    $.ajax({
+        url : window.authService,
+        type: 'POST',
+        dataType : 'json',
+        contentType: 'application/json; charset=utf-8',
+        data : JSON.stringify(postData)
+    })
+    .fail(requestFail)
+    .done(anonymousLoginDone);
+}
 
 // TODO: Use closure to pass in admin boolean to avoid code duplication
 function studentLoginSubmit(){
@@ -15,6 +30,11 @@ function studentLoginSubmit(){
         */
         var form = this;
         if(validate(form)){
+            // Avoid getting a tokenLoggedIn from anonymous credentials
+            if(form[0].value == 'anonymous' && form[1].value == 'anonymous'){
+                alert("Invalid Credentials");
+                return;
+            }
             var postData = {'username' : form[0].value,
                             'password' : form[1].value};
             $.ajax({
@@ -58,8 +78,9 @@ function anonymousLoginDone(data, textStatus, jqxhr){
         window.tokenAnonymousAccess = data.access_token;
         retrieveEvents();
     }else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
     }
+
 }
 
 function studentLoginDone(data, textStatus, jqxhr){
@@ -70,7 +91,7 @@ function studentLoginDone(data, textStatus, jqxhr){
         uiLoggedIn();
         $('#ticketsPanel').show();
     }else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
     }
 }
 
@@ -91,7 +112,7 @@ function adminLoginDone(data, textStatus, jqxhr){
         .fail(adminPermissionFail)
         .done(adminPermissionDone);
     }else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
     }
 }
 
@@ -100,7 +121,7 @@ function loginFail(jqxhr, textStatus, errorThrown){
         // 401 unauthorized
         alert("Invalid Credentials");
     }else{
-        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
+        requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
@@ -112,7 +133,7 @@ function adminPermissionDone(data, textStatus, jqxhr){
         $('#loginCancelBttn').show();
         uiLoggedIn();
     }else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
     }
 }
 
@@ -122,12 +143,12 @@ function adminPermissionFail(jqxhr, textStatus, errorThrown){
         window.tokenLoggedIn = null;
         alert('Invalid Login - you are not an administrator');
     }else{
-        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
+        requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
 function retrieveEvents(){
-    $.getJSON(window.documentService + '?access_token=' + window.tokenAnonymousAccess)
+    $.getJSON(window.documentService  + '?access_token=' + window.tokenAnonymousAccess)
     .fail(retrieveEventsFail)
     .done(retrieveEventsDone);
 }
@@ -144,7 +165,7 @@ function retrieveEventsFail(jqxhr, textStatus, errorThrown){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
     }else{
-        alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
+        requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
@@ -155,9 +176,8 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         $.each(data, function(i, obj) {
             evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
         });
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }else{
+        serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
     }
 }
 
@@ -166,11 +186,10 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
-            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" style="float: right;"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" style="float: right;"><span class="glyphicon glyphicon-edit"></span></a></div>');
+            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
         });
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }else{
+        serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
     }
 }
 
@@ -186,7 +205,8 @@ function purchaseEvent(documentId){
 
 function purchaseGetEventDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
-        $('#purchaseBttn').show();
+        $('#purchaseBttn').attr('disabled', false);
+        document.getElementById('ticketsQuantity').value = null;
         document.getElementById('ticketsName').value = data.name;
         document.getElementById('ticketsDetails').value = data.details;
         $('#ticketsEvntFrm').off('submit').on('submit',(function( event ) {
@@ -212,18 +232,19 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
             }
         }));
     }else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
     }
 }
 
 function purchaseEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 201){
-        alert('Tickets Purchased.');
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small><strong>' + data.uri + '</strong> tickets purchased.</small></div>').hide().fadeIn('slow')
+        );
         $('#ticketsEvntFrm')[0].reset();
-        $('#purchaseBttn').hide();
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        $('#purchaseBttn').attr('disabled', true);
+    }else{
+        serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
     }
 }
 
@@ -243,9 +264,8 @@ function deleteEvent(documentId){
 function deleteDone(data, textStatus, jqxhr){
     if(jqxhr.status == 204){
         retrieveEventsAdmin();
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }else{
+        serviceRequestUnexpectedStatusAlert('Delete Event', jqxhr.status);
     }
 }
 
@@ -281,7 +301,7 @@ function editGetEventDone(data, textStatus, jqxhr){
             }
         }));
     }else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+        serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
     }
 }
 
@@ -289,24 +309,54 @@ function editEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 204){
         $('#editModal').modal('hide');
         retrieveEventsAdmin();
+    }else{
+        serviceRequestUnexpectedStatusAlert('Edit Event', jqxhr.status);
     }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
-    }
+}
+
+function createEventSubmit(){
+    $('#crtEvntFrm').submit(function( event ) {
+        event.preventDefault();
+        /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
+        *  In this case, trying to generically create json objects from a form's input fields
+        */
+        var form = this;
+        if(validate(form)){
+            var postData = {};
+            postData['name'] = form[0].value;
+            postData['details'] = form[1].value;
+            $.ajax({
+                url : window.documentService + '?access_token=' + window.tokenLoggedIn,
+                type: 'POST',
+                dataType : 'json',
+                contentType: 'application/json; charset=utf-8',
+                data : JSON.stringify(postData)
+            })
+            .fail(requestFail)
+            .done(createEventDone);
+        }
+    });
 }
 
 function createEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 201){
         $('#crtEvntFrm')[0].reset();
         retrieveEventsAdmin();
-    }
-    else{
-        alert("Unexpected status " + jqxhr.status + " returned from BridgeIt service.");
+    }else{
+        serviceRequestUnexpectedStatusAlert('Create Event', jqxhr.status);
     }
 }
 
 function requestFail(jqxhr, textStatus, errorThrown){
-    alert("There was an error connecting to the BridgeIt service: "+ jqxhr.status + " - please try again later.");
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small><strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.</small></div>').hide().fadeIn('slow')
+    );
+}
+
+function serviceRequestUnexpectedStatusAlert(source, status){
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small><strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.</small></div>').hide().fadeIn('slow')
+    );
 }
 
 function validate(form){
