@@ -198,7 +198,7 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
-            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
+            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\',\'' + obj.name + '\');" class="pull-right"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\',\'' + obj.name + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
         });
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
@@ -263,7 +263,7 @@ function purchaseEventDone(data, textStatus, jqxhr){
     }
 }
 
-function deleteEvent(documentId){
+function deleteEvent(documentId, name){
     if (confirm("Delete Event?")){
         $.ajax({
             url : window.documentService + '/' + documentId +  '?access_token=' + window.tokenLoggedIn,
@@ -272,19 +272,25 @@ function deleteEvent(documentId){
             dataType: 'json'
         })
         .fail(requestFail)
-        .done(deleteDone);
+        .done(deleteDone(name));
     }
 }
 
-function deleteDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 204){
-        retrieveEventsAdmin();
-    }else{
-        serviceRequestUnexpectedStatusAlert('Delete Event', jqxhr.status);
-    }
-}
+var deleteDone = function(name){
+    return function(data, textStatus, jqxhr){
+        if(jqxhr.status == 204){
+            $('#alertDiv').prepend(
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Deleted</small></div>').hide().fadeIn('slow')
+            );
+            $('#noticesPanel').addClass('panel-info');
+            retrieveEventsAdmin();
+        }else{
+            serviceRequestUnexpectedStatusAlert('Delete Event', jqxhr.status);
+        }
+    };
+};
 
-function editEvent(documentId){
+function editEvent(documentId, name){
     $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one')
     .fail(requestFail)
     .done(editGetEventDone);
@@ -312,7 +318,7 @@ function editGetEventDone(data, textStatus, jqxhr){
                     data : JSON.stringify(putData)
                 })
                 .fail(requestFail)
-                .done(editEventDone);
+                .done(editEventDone(data.name));
             }
         }));
     }else{
@@ -320,13 +326,19 @@ function editGetEventDone(data, textStatus, jqxhr){
     }
 }
 
-function editEventDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 204){
-        $('#editModal').modal('hide');
-        retrieveEventsAdmin();
-    }else{
-        serviceRequestUnexpectedStatusAlert('Edit Event', jqxhr.status);
-    }
+var editEventDone = function(name){
+    return function(data, textStatus, jqxhr){
+        if(jqxhr.status == 204){
+            $('#alertDiv').prepend(
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Edited</small></div>').hide().fadeIn('slow')
+            );
+            $('#noticesPanel').addClass('panel-info');
+            $('#editModal').modal('hide');
+            retrieveEventsAdmin();
+        }else{
+            serviceRequestUnexpectedStatusAlert('Edit Event', jqxhr.status);
+        }
+    };
 }
 
 function createEventSubmit(){
@@ -348,18 +360,24 @@ function createEventSubmit(){
                 data : JSON.stringify(postData)
             })
             .fail(requestFail)
-            .done(createEventDone);
+            .done(createEventDone(form[0].value));
         }
     });
 }
 
-function createEventDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 201){
-        $('#crtEvntFrm')[0].reset();
-        retrieveEventsAdmin();
-    }else{
-        serviceRequestUnexpectedStatusAlert('Create Event', jqxhr.status);
-    }
+var createEventDone = function(name){
+    return function(data, textStatus, jqxhr){
+        if(jqxhr.status == 201){
+            $('#alertDiv').prepend(
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Created</small></div>').hide().fadeIn('slow')
+            );
+            $('#noticesPanel').addClass('panel-info');
+            $('#crtEvntFrm')[0].reset();
+            retrieveEventsAdmin();
+        }else{
+            serviceRequestUnexpectedStatusAlert('Create Event', jqxhr.status);
+        }
+    };
 }
 
 function requestFail(jqxhr, textStatus, errorThrown){
