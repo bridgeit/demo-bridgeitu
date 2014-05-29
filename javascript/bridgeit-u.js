@@ -1,10 +1,12 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
+window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 // Token obtained automatically to view events in the index.html screen without a login
 window.tokenAnonymousAccess = null;
 // Token obtained from a login
 window.tokenLoggedIn = null;
+window.events = {};
 
 function anonymousLogin(){
     // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
@@ -186,7 +188,12 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
-            evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
+            // Using Document Service to store ticket purchases, this will skip the ticket purchase documents
+            if(!obj.access_token){
+                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used as parameters in javascript methods
+                window.events[obj._id] = obj.name;
+                evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
+            }
         });
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
@@ -198,7 +205,12 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
-            evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\',\'' + obj.name + '\');" class="pull-right"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\',\'' + obj.name + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
+            // Using Document Service to store ticket purchases, this will skip the ticket purchase documents
+            if(!obj.access_token){
+                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used as parameters in javascript methods
+                window.events[obj._id] = obj.name;
+                evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
+            }
         });
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
@@ -263,7 +275,7 @@ function purchaseEventDone(data, textStatus, jqxhr){
     }
 }
 
-function deleteEvent(documentId, name){
+function deleteEvent(documentId){
     if (confirm("Delete Event?")){
         $.ajax({
             url : window.documentService + '/' + documentId +  '?access_token=' + window.tokenLoggedIn,
@@ -272,15 +284,15 @@ function deleteEvent(documentId, name){
             dataType: 'json'
         })
         .fail(requestFail)
-        .done(deleteDone(name));
+        .done(deleteDone(documentId));
     }
 }
 
-var deleteDone = function(name){
+var deleteDone = function(documentId){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 204){
             $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Deleted</small></div>').hide().fadeIn('slow')
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Deleted</small></div>').hide().fadeIn('slow')
             );
             $('#noticesPanel').addClass('panel-info');
             retrieveEventsAdmin();
@@ -290,7 +302,7 @@ var deleteDone = function(name){
     };
 };
 
-function editEvent(documentId, name){
+function editEvent(documentId){
     $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one')
     .fail(requestFail)
     .done(editGetEventDone);
@@ -318,7 +330,7 @@ function editGetEventDone(data, textStatus, jqxhr){
                     data : JSON.stringify(putData)
                 })
                 .fail(requestFail)
-                .done(editEventDone(data.name));
+                .done(editEventDone(data._id));
             }
         }));
     }else{
@@ -326,11 +338,11 @@ function editGetEventDone(data, textStatus, jqxhr){
     }
 }
 
-var editEventDone = function(name){
+var editEventDone = function(documentId){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 204){
             $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Edited</small></div>').hide().fadeIn('slow')
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Edited</small></div>').hide().fadeIn('slow')
             );
             $('#noticesPanel').addClass('panel-info');
             $('#editModal').modal('hide');
