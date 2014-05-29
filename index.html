@@ -106,10 +106,9 @@
 
             <hr>
 
-            <div class="panel panel-default">
+            <div id="noticesPanel" class="panel panel-default">
                 <div class="panel-heading"><h4>Notices</h4></div>
-                <div id="alertDiv" class="panel-body">
-                </div>
+                <div id="alertDiv" class="panel-body"></div>
             </div>
         </div><!-- /col-3 -->
 
@@ -200,7 +199,8 @@
 <footer class="text-center">This Bootstrap 3 dashboard layout is compliments of <a href="http://www.bootply.com/85850"><strong>Bootply.com</strong></a></footer>
 
 <!--login modal-->
-<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true"
+     data-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -219,6 +219,7 @@
                   <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
                   <!--<span class="pull-right"><a href="#">Register</a></span><span><a href="#">Need help?</a></span>-->
                 </div>
+                <div id="alertLoginDiv"></div>
               </form>
             </div>
             <div class="modal-footer">

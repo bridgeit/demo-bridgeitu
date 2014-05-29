@@ -32,7 +32,9 @@ function studentLoginSubmit(){
         if(validate(form)){
             // Avoid getting a tokenLoggedIn from anonymous credentials
             if(form[0].value == 'anonymous' && form[1].value == 'anonymous'){
-                alert("Invalid Credentials");
+                $('#alertLoginDiv').html(
+                    $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
+                );
                 return;
             }
             var postData = {'username' : form[0].value,
@@ -46,6 +48,9 @@ function studentLoginSubmit(){
             })
             .fail(loginFail)
             .done(studentLoginDone);
+        }else{
+            //Form fields are invalid, remove any alerts related to authentication
+            $('#alertLoginDiv').html('');
         }
     });
 }
@@ -69,6 +74,9 @@ function adminLoginSubmit(){
             })
             .fail(loginFail)
             .done(adminLoginDone);
+        }else{
+            //Form fields are invalid, remove any alerts related to authentication
+            $('#alertLoginDiv').html('');
         }
     });
 }
@@ -119,7 +127,9 @@ function adminLoginDone(data, textStatus, jqxhr){
 function loginFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
-        alert("Invalid Credentials");
+        $('#alertLoginDiv').html(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
+        );
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -141,7 +151,9 @@ function adminPermissionFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
         window.tokenLoggedIn = null;
-        alert('Invalid Login - you are not an administrator');
+        $('#alertLoginDiv').html(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Login - you are not an administrator</div>').hide().fadeIn('fast')
+        );
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -205,6 +217,7 @@ function purchaseEvent(documentId){
 
 function purchaseGetEventDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
+        $('#ticketsPanel').addClass('panel-primary');
         $('#purchaseBttn').attr('disabled', false);
         document.getElementById('ticketsQuantity').value = null;
         document.getElementById('ticketsName').value = data.name;
@@ -239,9 +252,11 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
 function purchaseEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 201){
         $('#alertDiv').prepend(
-            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small><strong>' + data.uri + '</strong> tickets purchased.</small></div>').hide().fadeIn('slow')
+            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.uri + '</strong> tickets purchased.</small></div>').hide().fadeIn('slow')
         );
+        $('#noticesPanel').addClass('panel-info');
         $('#ticketsEvntFrm')[0].reset();
+        $('#ticketsPanel').removeClass('panel-primary');
         $('#purchaseBttn').attr('disabled', true);
     }else{
         serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
@@ -349,14 +364,16 @@ function createEventDone(data, textStatus, jqxhr){
 
 function requestFail(jqxhr, textStatus, errorThrown){
     $('#alertDiv').prepend(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small><strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.</small></div>').hide().fadeIn('slow')
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.</small></div>').hide().fadeIn('slow')
     );
+    $('#noticesPanel').addClass('panel-info');
 }
 
 function serviceRequestUnexpectedStatusAlert(source, status){
     $('#alertDiv').prepend(
-        $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small><strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.</small></div>').hide().fadeIn('slow')
+        $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.</small></div>').hide().fadeIn('slow')
     );
+    $('#noticesPanel').addClass('panel-info');
 }
 
 function validate(form){
@@ -389,10 +406,15 @@ function uiLoggedIn(){
 function resetLoginForm(){
     var loginForm = document.getElementById('loginModalForm');
     loginForm.reset();
+    $('#alertLoginDiv').html('');
     resetFormCSS(loginForm);
 }
 
 function resetFormCSS(form){
     $(form[0]).parent('div').removeClass('has-error');
     $(form[1]).parent('div').removeClass('has-error');
+}
+
+function removeNoticesInfoClass(){
+    $('#noticesPanel').removeClass('panel-info');
 }
