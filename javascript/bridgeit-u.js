@@ -24,17 +24,16 @@ function anonymousLogin(){
     .done(anonymousLoginDone);
 }
 
-// TODO: Use closure to pass in admin boolean to avoid code duplication
-function studentLoginSubmit(){
+function loginSubmit(isAdmin){
     $('#loginModalForm').submit(function( event ) {
         event.preventDefault();
         /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-        *  In this case, generically creating url from a form's input fields
+        *  In this case, generically creating post data from a form's input fields
         */
         var form = this;
         if(validate(form)){
             // Avoid getting a tokenLoggedIn from anonymous credentials
-            if(form[0].value == 'anonymous' && form[1].value == 'anonymous'){
+            if(!isAdmin && (form[0].value == 'anonymous' && form[1].value == 'anonymous')){
                 $('#alertLoginDiv').html(
                     $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
                 );
@@ -50,33 +49,7 @@ function studentLoginSubmit(){
                 data : JSON.stringify(postData)
             })
             .fail(loginFail)
-            .done(studentLoginDone);
-        }else{
-            //Form fields are invalid, remove any alerts related to authentication
-            $('#alertLoginDiv').html('');
-        }
-    });
-}
-
-function adminLoginSubmit(){
-    $('#loginModalForm').submit(function( event ) {
-        event.preventDefault();
-        /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-        *  In this case, generically creating url from a form's input fields
-        */
-        var form = this;
-        if(validate(form)){
-            var postData = {'username' : form[0].value,
-                            'password' : form[1].value};
-            $.ajax({
-                url : window.authService,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(loginFail)
-            .done(adminLoginDone);
+            .done(isAdmin ? adminLoginDone : studentLoginDone);
         }else{
             //Form fields are invalid, remove any alerts related to authentication
             $('#alertLoginDiv').html('');
