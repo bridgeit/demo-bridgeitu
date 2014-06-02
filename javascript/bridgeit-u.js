@@ -6,6 +6,7 @@ window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 window.tokenAnonymousAccess = null;
 // Token obtained from a login
 window.tokenLoggedIn = null;
+// Used to store event id/name to easily reference the name String to avoid encoding/decoding the Sting in javascript
 window.events = {};
 
 function anonymousLogin(){
@@ -190,7 +191,7 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         $.each(data, function(i, obj) {
             // Using Document Service to store ticket purchases, this will skip the ticket purchase documents
             if(!obj.access_token){
-                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used as parameters in javascript methods
+                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
             }
@@ -207,7 +208,7 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         $.each(data, function(i, obj) {
             // Using Document Service to store ticket purchases, this will skip the ticket purchase documents
             if(!obj.access_token){
-                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used as parameters in javascript methods
+                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<div class="list-group-item">' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="padding: 0 10px;"  class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
             }
@@ -246,13 +247,13 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
                 postData['name'] = form[0].value;
                 postData['quantity'] = form[1].value;
                 $.ajax({
-                    url : window.documentService + '?access_token=' + window.tokenLoggedIn,
+                    url : window.purchaseFlow,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
                     data : JSON.stringify(postData)
                 })
-                .fail(requestFail)
+                .fail(purchaseFail)
                 .done(purchaseEventDone);
             }
         }));
@@ -261,10 +262,22 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
     }
 }
 
-function purchaseEventDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 201){
+function purchaseFail(jqxhr, textStatus, errorThrown){
+    if(jqxhr.status == 401){
+        // 401 unauthorized
         $('#alertDiv').prepend(
-            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.uri + '</strong> tickets purchased.</small></div>').hide().fadeIn('slow')
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
+        );
+        $('#noticesPanel').addClass('panel-info');
+    }else{
+        requestFail(jqxhr, textStatus, errorThrown);
+    }
+}
+
+function purchaseEventDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 200){
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.quantity + ' ' + data.name + '</strong> ticket(s) purchased.</small></div>').hide().fadeIn('slow')
         );
         $('#noticesPanel').addClass('panel-info');
         $('#ticketsEvntFrm')[0].reset();
@@ -351,7 +364,7 @@ var editEventDone = function(documentId){
             serviceRequestUnexpectedStatusAlert('Edit Event', jqxhr.status);
         }
     };
-}
+};
 
 function createEventSubmit(){
     $('#crtEvntFrm').submit(function( event ) {
@@ -390,7 +403,7 @@ var createEventDone = function(name){
             serviceRequestUnexpectedStatusAlert('Create Event', jqxhr.status);
         }
     };
-}
+};
 
 function requestFail(jqxhr, textStatus, errorThrown){
     $('#alertDiv').prepend(
