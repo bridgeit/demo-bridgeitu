@@ -27,8 +27,8 @@ function anonymousLogin(){
 function loginSubmit(isAdmin){
     $('#loginModalForm').submit(function( event ) {
         event.preventDefault();
-        /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-        *  In this case, generically creating post data from a form's input fields
+        /* form element used to generically validate form elements (could also serialize the form if necessary)
+        *  Also using form to create post data from form's elements
         */
         var form = this;
         if(validate(form)){
@@ -69,9 +69,9 @@ function anonymousLoginDone(data, textStatus, jqxhr){
 
 function studentLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
-        window.tokenLoggedIn = data.access_token;
         // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
         // Login is required to retrieve a token so purchases can be made
+        window.tokenLoggedIn = data.access_token;
         uiLoggedIn();
         $('#ticketsPanel').show();
     }else{
@@ -210,8 +210,8 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
         document.getElementById('ticketsDetails').value = data.details;
         $('#ticketsEvntFrm').off('submit').on('submit',(function( event ) {
             event.preventDefault();
-            /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-            *  In this case, trying to generically create json objects from a form's input fields
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json post data from form's elements
             */
             var form = this;
             if(validate(form)){
@@ -300,8 +300,8 @@ function editGetEventDone(data, textStatus, jqxhr){
         document.getElementById('edtDetails').value = data.details;
         $('#edtEvntFrm').off('submit').on('submit',(function( event ) {
             event.preventDefault();
-            /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-            *  In this case, trying to generically create json objects from a form's input fields
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json Put data from form's elements
             */
             var form = this;
             if(validate(form)){
@@ -342,8 +342,8 @@ var editEventDone = function(documentId){
 function createEventSubmit(){
     $('#crtEvntFrm').submit(function( event ) {
         event.preventDefault();
-        /* form tag only necessary to pass form into validate method (could also serialize the form if necessary)
-        *  In this case, trying to generically create json objects from a form's input fields
+        /* form element used to generically validate form elements (could also serialize the form if necessary)
+        *  Also using form to create json Post data from form's elements
         */
         var form = this;
         if(validate(form)){
