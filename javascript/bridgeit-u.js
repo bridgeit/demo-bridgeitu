@@ -393,22 +393,18 @@ function serviceRequestUnexpectedStatusAlert(source, status){
 }
 
 function validate(form){
-    /* Create and Edit forms have name and details 1st and second respectively
-       instead of referencing by name, use order in the form to avoid duplicate id's
+    /* Create and Edit forms have name and details fields.  Instead of
+     * referencing by id, validate form children to avoid duplicate id's.
      */
-    // TODO: Find iterative way of doing this without forms with only two fields
-    formValid = true;
-    if( form[0].value == ''){
-        $(form[0]).parent('div').addClass('has-error');
-        formValid = false;
-    }else{
-        $(form[0]).parent('div').removeClass('has-error');
-    }
-    if( form[1].value == ''){
-        $(form[1]).parent('div').addClass('has-error');
-        formValid = false;
-    }else{
-        $(form[1]).parent('div').removeClass('has-error');
+    var formValid = true;
+    for(var i=0; i<form.length; i++){
+        if( (form[i].tagName == 'INPUT' || form[i].tagName == 'TEXTAREA')
+                && form[i].value == ''){
+            $(form[i]).parent('div').addClass('has-error');
+            formValid = false;
+        }else{
+            $(form[i]).parent('div').removeClass('has-error');
+        }
     }
     return formValid;
 }
