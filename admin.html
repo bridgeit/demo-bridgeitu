@@ -285,13 +285,19 @@
 <script type='text/javascript'>
 
     $(document).ready(function() {
-        // Admin page so show modal login and initially hide close and cancel buttons to force login
-        $('#loginModal').modal('show');
-        $('#loginCloseBttn').hide();
-        $('#loginCancelBttn').hide();
         $('#evntNtfctnDiv').hide();
         loginSubmit('admin');
         createEventSubmit();
+        // TODO: tokenExpires
+        // If token is in sessionStorage, admin is logged in
+        if(!sessionStorage.bridgeitUToken){
+            // Force login by showing modal login and initially hide close and cancel buttons
+            $('#loginModal').modal('show');
+            $('#loginCloseBttn').hide();
+            $('#loginCancelBttn').hide();
+        }else{
+            adminLoggedIn();
+        }
     });
 
 </script>

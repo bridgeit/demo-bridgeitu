@@ -218,11 +218,21 @@
 <script type='text/javascript'>
 
     $(document).ready(function() {
-
-        $('#ticketsPanel').hide();
         $('#purchaseBttn').attr('disabled', true);
-        anonymousLogin();
         loginSubmit();
+        // TODO: tokenExpires
+        if(!localStorage.bridgeitUAnonymousToken){
+            anonymousLogin();
+        }else{
+            retrieveEvents();
+        }
+        // TODO: tokenExpires
+        // If token is in localStorage, student is logged in and can purchase
+        if(!localStorage.bridgeitUToken){
+            $('#ticketsPanel').hide();
+        }else{
+            studentLoggedIn();
+        }
     });
 
 </script>

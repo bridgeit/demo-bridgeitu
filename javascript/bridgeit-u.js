@@ -3,10 +3,6 @@ window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 window.eventNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventnotification';
-// Token obtained automatically to view events in the index.html screen without a login
-window.tokenAnonymousAccess = null;
-// Token obtained from a login
-window.tokenLoggedIn = null;
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the Sting in javascript
 window.events = {};
 
@@ -33,7 +29,7 @@ function loginSubmit(isAdmin){
         */
         var form = this;
         if(validate(form)){
-            // Avoid getting a tokenLoggedIn from anonymous credentials
+            // Avoid getting a token from anonymous credentials
             if(!isAdmin && (form[0].value == 'anonymous' && form[1].value == 'anonymous')){
                 $('#alertLoginDiv').html(
                     $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
@@ -60,7 +56,7 @@ function loginSubmit(isAdmin){
 
 function anonymousLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
-        window.tokenAnonymousAccess = data.access_token;
+        localStorage.bridgeitUAnonymousToken = data.access_token;
         retrieveEvents();
     }else{
         serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
@@ -72,20 +68,25 @@ function studentLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
         // Login is required to retrieve a token so purchases can be made
-        window.tokenLoggedIn = data.access_token;
-        uiLoggedIn();
-        $('#ticketsPanel').show('slow');
+        localStorage.bridgeitUToken = data.access_token;
+        localStorage.bridgeitUUsername = $('#userName').val();
+        studentLoggedIn();
     }else{
         serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
     }
 }
 
+function studentLoggedIn(){
+    uiLoggedIn(localStorage.bridgeitUUsername);
+    $('#ticketsEvntFrm')[0].reset();
+    $('#ticketsPanel').show('slow');
+}
+
 function adminLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
-        window.tokenLoggedIn = data.access_token;
         // Check that user has admin permissions
         var postData = {};
-        postData['access_token'] = window.tokenLoggedIn;
+        postData['access_token'] = data.access_token;
         postData['permissions'] = 'u.admin';
         $.ajax({
             url : window.authServicePermissions,
@@ -95,7 +96,7 @@ function adminLoginDone(data, textStatus, jqxhr){
             data : JSON.stringify(postData)
         })
         .fail(adminPermissionFail)
-        .done(adminPermissionDone);
+        .done(adminPermissionDone(data.access_token));
     }else{
         serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
     }
@@ -112,22 +113,30 @@ function loginFail(jqxhr, textStatus, errorThrown){
     }
 }
 
-function adminPermissionDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 200){
-        retrieveEventsAdmin();
-        // Admin screen has login cancel buttons hidden to force login.  After logging in as admin show cancel buttons.
-        $('#loginCloseBttn').show();
-        $('#loginCancelBttn').show();
-        uiLoggedIn();
-    }else{
-        serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
+var adminPermissionDone = function(token){
+    return function(data, textStatus, jqxhr){
+        if(jqxhr.status == 200){
+            sessionStorage.bridgeitUToken = token;
+            sessionStorage.bridgeitUUsername = $('#userName').val();
+            adminLoggedIn();
+        }else{
+            serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
+        }
     }
+};
+
+function adminLoggedIn(){
+    uiLoggedIn(sessionStorage.bridgeitUUsername);
+    // Admin screen has login cancel buttons hidden to force login.  After logging in as admin show cancel buttons.
+    $('#loginCloseBttn').show();
+    $('#loginCancelBttn').show();
+    retrieveEventsAdmin();
+    $('#crtEvntFrm')[0].reset();
 }
 
 function adminPermissionFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
-        window.tokenLoggedIn = null;
         $('#alertLoginDiv').html(
             $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Login - you are not an administrator</div>').hide().fadeIn('fast')
         );
@@ -137,13 +146,13 @@ function adminPermissionFail(jqxhr, textStatus, errorThrown){
 }
 
 function retrieveEvents(){
-    $.getJSON(window.documentService  + '?access_token=' + window.tokenAnonymousAccess)
+    $.getJSON(window.documentService  + '?access_token=' + localStorage.bridgeitUAnonymousToken)
     .fail(retrieveEventsFail)
     .done(retrieveEventsDone);
 }
 
 function retrieveEventsAdmin(){
-    $.getJSON(window.documentService + '?access_token=' + window.tokenLoggedIn)
+    $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken)
     .fail(retrieveEventsFail)
     .done(adminRetrieveEventsDone);
 }
@@ -184,7 +193,7 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
             if(!obj.access_token){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
-                evntLstDiv.append('<div class="list-group-item"><a title="Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj.name + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
+                evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj.name + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
             }
         });
     }else{
@@ -193,8 +202,8 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
 }
 
 function purchaseEvent(documentId){
-    if(window.tokenLoggedIn){
-        $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one')
+    if(localStorage.bridgeitUToken){
+        $.getJSON( window.documentService + '/' + documentId + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
         .fail(requestFail)
         .done(purchaseGetEventDone);
     }else{
@@ -217,7 +226,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
             var form = this;
             if(validate(form)){
                 var postData = {};
-                postData['access_token'] = window.tokenLoggedIn;
+                postData['access_token'] = localStorage.bridgeitUToken;
                 postData['name'] = form[0].value;
                 postData['quantity'] = form[1].value;
                 $.ajax({
@@ -265,7 +274,7 @@ function purchaseEventDone(data, textStatus, jqxhr){
 function deleteEvent(documentId){
     if (confirm("Delete Event?")){
         $.ajax({
-            url : window.documentService + '/' + documentId +  '?access_token=' + window.tokenLoggedIn,
+            url : window.documentService + '/' + documentId +  '?access_token=' + sessionStorage.bridgeitUToken,
             type: 'DELETE',
             contentType: 'application/json; charset=utf-8',
             dataType: 'json'
@@ -290,7 +299,7 @@ var deleteDone = function(documentId){
 };
 
 function editEvent(documentId){
-    $.getJSON( window.documentService + '/' + documentId + '?access_token=' + window.tokenLoggedIn + '&results=one')
+    $.getJSON( window.documentService + '/' + documentId + '?access_token=' + sessionStorage.bridgeitUToken + '&results=one')
     .fail(requestFail)
     .done(editGetEventDone);
 }
@@ -310,7 +319,7 @@ function editGetEventDone(data, textStatus, jqxhr){
                 putData['name'] = form[0].value;
                 putData['details'] = form[1].value;
                 $.ajax({
-                    url : window.documentService + '/' + data._id + '?access_token=' + window.tokenLoggedIn,
+                    url : window.documentService + '/' + data._id + '?access_token=' + sessionStorage.bridgeitUToken,
                     type: 'PUT',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -327,7 +336,7 @@ function editGetEventDone(data, textStatus, jqxhr){
 
 var editEventDone = function(documentId){
     return function(data, textStatus, jqxhr){
-        if(jqxhr.status == 204){
+        if(jqxhr.status == 201){
             $('#alertDiv').prepend(
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Edited</small></div>').hide().fadeIn('slow')
             );
@@ -351,8 +360,9 @@ function notifyEvent(eventName){
         var form = this;
         if(validate(form)){
             var postData = {};
-            postData['access_token'] = window.tokenLoggedIn;
-            postData['name'] = form[0].value;
+            postData['access_token'] = sessionStorage.bridgeitUToken;
+            postData['eventName'] = eventName;
+            postData['pushSubject'] = form[0].value;
             $.ajax({
                 url : window.eventNotificationFlow,
                 type: 'POST',
@@ -381,7 +391,7 @@ function notifyEventFail(jqxhr, textStatus, errorThrown){
 function notifyEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 200){
         $('#alertDiv').prepend(
-            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.name + '</strong> notified.</small></div>').hide().fadeIn('slow')
+            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.eventName + '</strong> notified.</small></div>').hide().fadeIn('slow')
         );
         $('#noticesPanel').addClass('panel-info');
         toggleCreateNotifyEvent();
@@ -402,7 +412,7 @@ function createEventSubmit(){
             postData['name'] = form[0].value;
             postData['details'] = form[1].value;
             $.ajax({
-                url : window.documentService + '?access_token=' + window.tokenLoggedIn,
+                url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
                 type: 'POST',
                 dataType : 'json',
                 contentType: 'application/json; charset=utf-8',
@@ -460,8 +470,8 @@ function validate(form){
     return formValid;
 }
 
-function uiLoggedIn(){
-    $('#loginIcon').html('Welcome: ' + $('#userName').val());
+function uiLoggedIn(username){
+    $('#loginIcon').html('Welcome: ' + username);
     resetLoginForm();
     $('#loginModal').modal('hide');
 }
