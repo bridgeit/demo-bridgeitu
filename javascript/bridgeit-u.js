@@ -57,6 +57,7 @@ function loginSubmit(isAdmin){
 function anonymousLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         localStorage.bridgeitUAnonymousToken = data.access_token;
+        localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
         retrieveEvents();
     }else{
         serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
@@ -69,6 +70,7 @@ function studentLoginDone(data, textStatus, jqxhr){
         // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
         // Login is required to retrieve a token so purchases can be made
         localStorage.bridgeitUToken = data.access_token;
+        localStorage.bridgeitUTokenExpires = data.expires_in;
         localStorage.bridgeitUUsername = $('#userName').val();
         studentLoggedIn();
     }else{
@@ -80,6 +82,18 @@ function studentLoggedIn(){
     uiLoggedIn(localStorage.bridgeitUUsername);
     $('#ticketsEvntFrm')[0].reset();
     $('#ticketsPanel').show('slow');
+}
+
+function studentLogout(){
+    localStorage.removeItem('bridgeitUToken');
+    localStorage.removeItem('bridgeitUTokenExpires');
+    localStorage.removeItem('bridgeitUUsername');
+    $('#ticketsPanel').hide();
+    $('#loginIcon').html('Login');
+    $('#loginModal').modal('show');
+    $('#alertLoginDiv').html(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
+    );
 }
 
 function adminLoginDone(data, textStatus, jqxhr){
@@ -96,7 +110,7 @@ function adminLoginDone(data, textStatus, jqxhr){
             data : JSON.stringify(postData)
         })
         .fail(adminPermissionFail)
-        .done(adminPermissionDone(data.access_token));
+        .done(adminPermissionDone(data.access_token, data.expires_in));
     }else{
         serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
     }
@@ -113,10 +127,11 @@ function loginFail(jqxhr, textStatus, errorThrown){
     }
 }
 
-var adminPermissionDone = function(token){
+var adminPermissionDone = function(token, expires_in){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 200){
             sessionStorage.bridgeitUToken = token;
+            sessionStorage.bridgeitUTokenExpires = expires_in;
             sessionStorage.bridgeitUUsername = $('#userName').val();
             adminLoggedIn();
         }else{
@@ -132,6 +147,21 @@ function adminLoggedIn(){
     $('#loginCancelBttn').show();
     retrieveEventsAdmin();
     $('#crtEvntFrm')[0].reset();
+}
+
+function adminLogout(){
+    sessionStorage.removeItem('bridgeitUToken');
+    sessionStorage.removeItem('bridgeitUTokenExpires');
+    sessionStorage.removeItem('bridgeitUUsername');
+    toggleCreateNotifyEvent();
+    $('#loginIcon').html('Login');
+    // Force login by showing modal login and initially hide close and cancel buttons
+    $('#loginModal').modal('show');
+    $('#loginCloseBttn').hide();
+    $('#loginCancelBttn').hide();
+    $('#alertLoginDiv').html(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
+    );
 }
 
 function adminPermissionFail(jqxhr, textStatus, errorThrown){
@@ -505,4 +535,8 @@ function notifyEventShow(){
 function toggleCreateNotifyEvent(){
     $('#evntNtfctnDiv').hide();
     $('#crtEvntDiv').show('slow');
+}
+
+function tokenValid(token, expires, type){
+    return token && (parseInt(expires) > new Date().getTime());
 }

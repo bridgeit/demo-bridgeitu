@@ -220,18 +220,21 @@
     $(document).ready(function() {
         $('#purchaseBttn').attr('disabled', true);
         loginSubmit();
-        // TODO: tokenExpires
-        if(!localStorage.bridgeitUAnonymousToken){
-            anonymousLogin();
-        }else{
+        // Anonymous token for viewing events
+        if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
             retrieveEvents();
+        }else{
+            anonymousLogin();
         }
-        // TODO: tokenExpires
-        // If token is in localStorage, student is logged in and can purchase
+        // No Student token
         if(!localStorage.bridgeitUToken){
             $('#ticketsPanel').hide();
-        }else{
+        // Valid Student token - logged in
+        } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             studentLoggedIn();
+        // Invalid Student token - log out
+        }else{
+            studentLogout();
         }
     });
 

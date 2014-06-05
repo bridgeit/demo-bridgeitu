@@ -288,15 +288,18 @@
         $('#evntNtfctnDiv').hide();
         loginSubmit('admin');
         createEventSubmit();
-        // TODO: tokenExpires
-        // If token is in sessionStorage, admin is logged in
+        // No Admin token
         if(!sessionStorage.bridgeitUToken){
             // Force login by showing modal login and initially hide close and cancel buttons
             $('#loginModal').modal('show');
             $('#loginCloseBttn').hide();
             $('#loginCancelBttn').hide();
-        }else{
+        // Valid Admin token - logged in
+        } else if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
             adminLoggedIn();
+        // Invalid Admin token - log out
+        }else{
+            adminLogout();
         }
     });
 
