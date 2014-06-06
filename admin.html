@@ -285,6 +285,10 @@
 <script type='text/javascript'>
 
     $(document).ready(function() {
+        bridgeit.useServices({
+                realm:"bridgeit.u",
+                serviceBase:"http://dev.bridgeit.io"});
+
         $('#evntNtfctnDiv').hide();
         loginSubmit('admin');
         createEventSubmit();
@@ -297,6 +301,7 @@
         // Valid Admin token - logged in
         } else if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
             adminLoggedIn();
+            registerPushUsernameGroup(sessionStorage.bridgeitUUsername);
         // Invalid Admin token - log out
         }else{
             adminLogout();

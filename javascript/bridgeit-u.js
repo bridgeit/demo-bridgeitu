@@ -2,7 +2,7 @@ window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
-window.eventNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventnotification';
+window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the Sting in javascript
 window.events = {};
 
@@ -59,6 +59,7 @@ function anonymousLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUAnonymousToken = data.access_token;
         localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
         retrieveEvents();
+        registerPushUsernameGroup('anonymous');
     }else{
         serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
     }
@@ -72,6 +73,7 @@ function studentLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUToken = data.access_token;
         localStorage.bridgeitUTokenExpires = data.expires_in;
         localStorage.bridgeitUUsername = $('#userName').val();
+        registerPushUsernameGroup(localStorage.bridgeitUUsername);
         studentLoggedIn();
     }else{
         serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
@@ -133,6 +135,7 @@ var adminPermissionDone = function(token, expires_in){
             sessionStorage.bridgeitUToken = token;
             sessionStorage.bridgeitUTokenExpires = expires_in;
             sessionStorage.bridgeitUUsername = $('#userName').val();
+            registerPushUsernameGroup(sessionStorage.bridgeitUUsername);
             adminLoggedIn();
         }else{
             serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
@@ -162,6 +165,16 @@ function adminLogout(){
     $('#alertLoginDiv').html(
         $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
     );
+}
+
+function registerPushUsernameGroup(username){
+    bridgeit.login(username, username);
+    bridgeit.usePushService();
+    bridgeit.addPushListener(username, 'handlePush');
+}
+
+function handlePush(){
+    retrieveEvents();
 }
 
 function adminPermissionFail(jqxhr, textStatus, errorThrown){
@@ -227,7 +240,7 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
             if(!obj.access_token){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
-                evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj.name + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
+                evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
             }
         });
     }else{
@@ -335,6 +348,7 @@ var deleteDone = function(documentId){
             );
             $('#noticesPanel').addClass('panel-info');
             retrieveEventsAdmin();
+            notifyCRUDEvent();
         }else{
             serviceRequestUnexpectedStatusAlert('Delete Event', jqxhr.status);
         }
@@ -390,14 +404,15 @@ var editEventDone = function(documentId){
             $('#noticesPanel').addClass('panel-info');
             $('#editModal').modal('hide');
             retrieveEventsAdmin();
+            notifyCRUDEvent();
         }else{
             serviceRequestUnexpectedStatusAlert('Edit Event', jqxhr.status);
         }
     };
 };
 
-function notifyEvent(eventName){
-    $('#ntfctnTextLabel').html(eventName);
+function notifyEvent(documentId){
+    $('#ntfctnTextLabel').html(window.events[documentId]);
     notifyEventShow();
     $('#evntNtfctnFrm').off('submit').on('submit',(function( event ) {
         event.preventDefault();
@@ -409,17 +424,18 @@ function notifyEvent(eventName){
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = sessionStorage.bridgeitUToken;
-                postData['eventName'] = eventName;
+                postData['eventName'] = window.events[documentId];
                 postData['pushSubject'] = form[0].value;
+                // TODO: Flow for location context
                 $.ajax({
-                    url : window.eventNotificationFlow,
+                    url : window.eventCRUDNotificationFlow,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
                     data : JSON.stringify(postData)
                 })
-                .fail(notifyEventFail)
-                .done(notifyEventDone);
+                .fail(notifyCRUDEventFail)
+                .done(notifyCRUDEventDone);
             }
         }else{
             adminLogout();
@@ -427,11 +443,26 @@ function notifyEvent(eventName){
     }));
 }
 
-function notifyEventFail(jqxhr, textStatus, errorThrown){
+function notifyCRUDEvent(){
+    var postData = {};
+    postData['access_token'] = sessionStorage.bridgeitUToken;
+    postData['pushSubject'] = 'Event List Modified';
+    $.ajax({
+        url : window.eventCRUDNotificationFlow,
+        type: 'POST',
+        dataType : 'json',
+        contentType: 'application/json; charset=utf-8',
+        data : JSON.stringify(postData)
+    })
+    .fail(notifyCRUDEventFail)
+    .done(notifyCRUDEventDone);
+}
+
+function notifyCRUDEventFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
         $('#alertDiv').prepend(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to send notifications: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to send event CRUD notifications: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
         );
         $('#noticesPanel').addClass('panel-info');
     }else{
@@ -439,10 +470,10 @@ function notifyEventFail(jqxhr, textStatus, errorThrown){
     }
 }
 
-function notifyEventDone(data, textStatus, jqxhr){
+function notifyCRUDEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 200){
         $('#alertDiv').prepend(
-            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.eventName + '</strong> notified.</small></div>').hide().fadeIn('slow')
+            $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.pushSubject + '</strong> push group notified.</small></div>').hide().fadeIn('slow')
         );
         $('#noticesPanel').addClass('panel-info');
         toggleCreateNotifyEvent();
@@ -488,6 +519,7 @@ var createEventDone = function(name){
             $('#noticesPanel').addClass('panel-info');
             $('#crtEvntFrm')[0].reset();
             retrieveEventsAdmin();
+            notifyCRUDEvent();
         }else{
             serviceRequestUnexpectedStatusAlert('Create Event', jqxhr.status);
         }

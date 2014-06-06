@@ -218,11 +218,16 @@
 <script type='text/javascript'>
 
     $(document).ready(function() {
+        bridgeit.useServices({
+                realm:"bridgeit.u",
+                serviceBase:"http://dev.bridgeit.io"});
+
         $('#purchaseBttn').attr('disabled', true);
         loginSubmit();
         // Anonymous token for viewing events
         if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
             retrieveEvents();
+            registerPushUsernameGroup('anonymous');
         }else{
             anonymousLogin();
         }
@@ -232,6 +237,7 @@
         // Valid Student token - logged in
         } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             studentLoggedIn();
+            registerPushUsernameGroup(localStorage.bridgeitUUsername);
         // Invalid Student token - log out
         }else{
             studentLogout();
