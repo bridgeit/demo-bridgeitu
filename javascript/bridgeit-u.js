@@ -182,9 +182,13 @@ function retrieveEvents(){
 }
 
 function retrieveEventsAdmin(){
-    $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken)
-    .fail(retrieveEventsFail)
-    .done(adminRetrieveEventsDone);
+    if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken)
+        .fail(retrieveEventsFail)
+        .done(adminRetrieveEventsDone);
+    }else{
+        adminLogout();
+    }
 }
 
 function retrieveEventsFail(jqxhr, textStatus, errorThrown){
@@ -232,12 +236,17 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
 }
 
 function purchaseEvent(documentId){
-    if(localStorage.bridgeitUToken){
+    // No token, prompt student to login
+    if(!localStorage.bridgeitUToken){
+        $('#loginModal').modal('show');
+        return;
+    }
+    if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         $.getJSON( window.documentService + '/' + documentId + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
         .fail(requestFail)
         .done(purchaseGetEventDone);
     }else{
-        $('#loginModal').modal('show');
+        studentLogout();
     }
 }
 
@@ -302,15 +311,19 @@ function purchaseEventDone(data, textStatus, jqxhr){
 }
 
 function deleteEvent(documentId){
-    if (confirm("Delete Event?")){
-        $.ajax({
-            url : window.documentService + '/' + documentId +  '?access_token=' + sessionStorage.bridgeitUToken,
-            type: 'DELETE',
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json'
-        })
-        .fail(requestFail)
-        .done(deleteDone(documentId));
+    if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        if (confirm("Delete Event?")){
+            $.ajax({
+                url : window.documentService + '/' + documentId +  '?access_token=' + sessionStorage.bridgeitUToken,
+                type: 'DELETE',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json'
+            })
+            .fail(requestFail)
+            .done(deleteDone(documentId));
+        }
+    }else{
+        adminLogout();
     }
 }
 
@@ -329,9 +342,13 @@ var deleteDone = function(documentId){
 };
 
 function editEvent(documentId){
-    $.getJSON( window.documentService + '/' + documentId + '?access_token=' + sessionStorage.bridgeitUToken + '&results=one')
-    .fail(requestFail)
-    .done(editGetEventDone);
+    if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        $.getJSON( window.documentService + '/' + documentId + '?access_token=' + sessionStorage.bridgeitUToken + '&results=one')
+        .fail(requestFail)
+        .done(editGetEventDone);
+    }else{
+        adminLogout();
+    }
 }
 
 function editGetEventDone(data, textStatus, jqxhr){
@@ -384,24 +401,28 @@ function notifyEvent(eventName){
     notifyEventShow();
     $('#evntNtfctnFrm').off('submit').on('submit',(function( event ) {
         event.preventDefault();
-        /* form element used to generically validate form elements (could also serialize the form if necessary)
-        *  Also using form to create json post data from form's elements
-        */
-        var form = this;
-        if(validate(form)){
-            var postData = {};
-            postData['access_token'] = sessionStorage.bridgeitUToken;
-            postData['eventName'] = eventName;
-            postData['pushSubject'] = form[0].value;
-            $.ajax({
-                url : window.eventNotificationFlow,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(notifyEventFail)
-            .done(notifyEventDone);
+        if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json post data from form's elements
+            */
+            var form = this;
+            if(validate(form)){
+                var postData = {};
+                postData['access_token'] = sessionStorage.bridgeitUToken;
+                postData['eventName'] = eventName;
+                postData['pushSubject'] = form[0].value;
+                $.ajax({
+                    url : window.eventNotificationFlow,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(notifyEventFail)
+                .done(notifyEventDone);
+            }
+        }else{
+            adminLogout();
         }
     }));
 }
@@ -433,23 +454,27 @@ function notifyEventDone(data, textStatus, jqxhr){
 function createEventSubmit(){
     $('#crtEvntFrm').submit(function( event ) {
         event.preventDefault();
-        /* form element used to generically validate form elements (could also serialize the form if necessary)
-        *  Also using form to create json Post data from form's elements
-        */
-        var form = this;
-        if(validate(form)){
-            var postData = {};
-            postData['name'] = form[0].value;
-            postData['details'] = form[1].value;
-            $.ajax({
-                url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(requestFail)
-            .done(createEventDone(form[0].value));
+        if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json Post data from form's elements
+            */
+            var form = this;
+            if(validate(form)){
+                var postData = {};
+                postData['name'] = form[0].value;
+                postData['details'] = form[1].value;
+                $.ajax({
+                    url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(requestFail)
+                .done(createEventDone(form[0].value));
+            }
+        }else{
+            adminLogout();
         }
     });
 }
