@@ -84,6 +84,7 @@ function studentLoggedIn(){
     uiLoggedIn(localStorage.bridgeitUUsername);
     $('#ticketsEvntFrm')[0].reset();
     $('#ticketsPanel').show('slow');
+    $('#locationPanel').show('slow');
 }
 
 function studentLogout(){
@@ -91,6 +92,7 @@ function studentLogout(){
     localStorage.removeItem('bridgeitUTokenExpires');
     localStorage.removeItem('bridgeitUUsername');
     $('#ticketsPanel').hide();
+    $('#locationPanel').hide();
     $('#loginIcon').html('Login');
     $('#loginModal').modal('show');
     $('#alertLoginDiv').html(

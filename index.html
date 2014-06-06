@@ -122,6 +122,56 @@
                     </div><!--/panel-->
                 </div>
                 <div class="col-md-6">
+                    <div id="locationPanel" class="panel panel-default">
+                        <div class="panel-heading">
+                            <div class="panel-title">
+                            <i class="glyphicon glyphicon-globe pull-right"></i>
+                            <h4>My Location</h4>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <form class="form form-vertical">
+
+                                <div class="radio">
+                                    <label>
+                                        <input id="residence" name="crrntLctn"
+                                               value="Residence"
+                                               type="radio">
+                                        Residence
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="cmptrScncBldng" name="crrntLctn"
+                                               value="Computer Science Building"
+                                               type="radio">
+                                        Computer Science Building
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input id="offCampus" name="crrntLctn"
+                                               value="Computer Science Building"
+                                               type="radio">
+                                        Off Campus
+                                    </label>
+                                </div>
+                                <div class="control-group">
+                                    <label></label>
+                                    <div class="controls">
+                                    <button id="saveLctnBttn" type="submit" class="btn btn-primary">
+                                      Save
+                                    </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div><!--/col-span-6-->
+            </div><!--/row-->
+            <!-- column 2 row 2-->
+            <div class="row">
+                <div class="col-md-6">
                     <div id="ticketsPanel" class="panel panel-default">
                         <div class="panel-heading">
                             <div class="panel-title">
@@ -234,6 +284,7 @@
         // No Student token
         if(!localStorage.bridgeitUToken){
             $('#ticketsPanel').hide();
+            $('#locationPanel').hide();
         // Valid Student token - logged in
         } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             studentLoggedIn();
