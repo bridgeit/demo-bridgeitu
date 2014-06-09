@@ -4,7 +4,7 @@ window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/pe
 window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
 window.eventCustomNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCustomNotification';
-// Used to store event id/name to easily reference the name String to avoid encoding/decoding the Sting in javascript
+// Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
 window.events = {};
 window.userRecord = {};
 
@@ -65,7 +65,6 @@ function anonymousLoginDone(data, textStatus, jqxhr){
     }else{
         serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
     }
-
 }
 
 function studentLoginDone(data, textStatus, jqxhr){
@@ -273,7 +272,7 @@ function purchaseEvent(documentId){
 function purchaseGetEventDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         $('#ticketsPanel').addClass('panel-primary');
-        $('#purchaseBttn').attr('disabled', false);
+        $('#purchaseBttn').prop('disabled', false);
         document.getElementById('ticketsQuantity').value = null;
         document.getElementById('ticketsName').value = data.name;
         document.getElementById('ticketsDetails').value = data.details;
@@ -286,8 +285,19 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = localStorage.bridgeitUToken;
-                postData['name'] = form[0].value;
+                postData['eventname'] = form[0].value;
                 postData['quantity'] = form[1].value;
+                var submittedUserRecord = {};
+                submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
+                submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
+                submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
+                submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
+                var ticketArray = [];
+                for(var i=0; i<form[1].value; i++){
+                    ticketArray.push({name:form[0].value});
+                }
+                submittedUserRecord['tickets'] = submittedUserRecord['tickets'].concat(ticketArray);
+                postData['user_record'] = submittedUserRecord;
                 $.ajax({
                     url : window.purchaseFlow,
                     type: 'POST',
@@ -296,7 +306,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
                     data : JSON.stringify(postData)
                 })
                 .fail(purchaseFail)
-                .done(purchaseEventDone);
+                .done(purchaseEventDone(ticketArray));
             }
         }));
     }else{
@@ -310,25 +320,28 @@ function purchaseFail(jqxhr, textStatus, errorThrown){
         $('#alertDiv').prepend(
             $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
         );
-        $('#noticesPanel').addClass('panel-info');
+        addNoticesInfoClass();
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
-function purchaseEventDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 200){
-        $('#alertDiv').prepend(
-            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.quantity + ' ' + data.name + '</strong> ticket(s) purchased.</small></div>').hide().fadeIn('slow')
-        );
-        $('#noticesPanel').addClass('panel-info');
-        $('#ticketsEvntFrm')[0].reset();
-        $('#ticketsPanel').removeClass('panel-primary');
-        $('#purchaseBttn').attr('disabled', true);
-    }else{
-        serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
+var purchaseEventDone = function(ticketArray){
+    return function(data, textStatus, jqxhr){
+        if(jqxhr.status == 200){
+            window.userRecord['tickets'] = window.userRecord['tickets'].concat(ticketArray);
+            $('#alertDiv').prepend(
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.</small></div>').hide().fadeIn('slow')
+            );
+            addNoticesInfoClass();
+            $('#ticketsEvntFrm')[0].reset();
+            $('#ticketsPanel').removeClass('panel-primary');
+            $('#purchaseBttn').prop('disabled', true);
+        }else{
+            serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
+        }
     }
-}
+};
 
 function deleteEvent(documentId){
     if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
@@ -353,7 +366,7 @@ var deleteDone = function(documentId){
             $('#alertDiv').prepend(
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Deleted</small></div>').hide().fadeIn('slow')
             );
-            $('#noticesPanel').addClass('panel-info');
+            addNoticesInfoClass();
             retrieveEventsAdmin();
             notifyCRUDEvent();
         }else{
@@ -408,7 +421,7 @@ var editEventDone = function(documentId){
             $('#alertDiv').prepend(
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Edited</small></div>').hide().fadeIn('slow')
             );
-            $('#noticesPanel').addClass('panel-info');
+            addNoticesInfoClass();
             $('#editModal').modal('hide');
             retrieveEventsAdmin();
             notifyCRUDEvent();
@@ -475,7 +488,7 @@ function notifyCRUDEventFail(jqxhr, textStatus, errorThrown){
         $('#alertDiv').prepend(
             $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to send event CRUD notifications: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
         );
-        $('#noticesPanel').addClass('panel-info');
+        addNoticesInfoClass();
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -486,7 +499,7 @@ function notifyCRUDEventDone(data, textStatus, jqxhr){
         $('#alertDiv').prepend(
             $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.pushSubject + '</strong> push group notified.</small></div>').hide().fadeIn('slow')
         );
-        $('#noticesPanel').addClass('panel-info');
+        addNoticesInfoClass();
         toggleCreateNotifyEvent();
     }else{
         serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
@@ -527,7 +540,7 @@ var createEventDone = function(name){
             $('#alertDiv').prepend(
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Created</small></div>').hide().fadeIn('slow')
             );
-            $('#noticesPanel').addClass('panel-info');
+            addNoticesInfoClass();
             $('#crtEvntFrm')[0].reset();
             retrieveEventsAdmin();
             notifyCRUDEvent();
@@ -551,7 +564,7 @@ function locationSaveSubmit(){
                 postData['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
                 postData['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
                 postData['location'] = location;
-                postData['tickets'] = (window.userRecord['_id'] ? window.userRecord['tickets'] : []);
+                postData['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
                 $.ajax({
                     url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
                     type: 'POST',
@@ -571,10 +584,11 @@ function locationSaveSubmit(){
 var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 201){
+            window.userRecord['location'] = location;
             $('#alertDiv').prepend(
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + location + '</strong> Location Saved</small></div>').hide().fadeIn('slow')
             );
-            $('#noticesPanel').addClass('panel-info');
+            addNoticesInfoClass();
             $('#crrntLctn').html(location);
         }else{
             serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
@@ -586,14 +600,14 @@ function requestFail(jqxhr, textStatus, errorThrown){
     $('#alertDiv').prepend(
         $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.</small></div>').hide().fadeIn('slow')
     );
-    $('#noticesPanel').addClass('panel-info');
+    addNoticesInfoClass();
 }
 
 function serviceRequestUnexpectedStatusAlert(source, status){
     $('#alertDiv').prepend(
         $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.</small></div>').hide().fadeIn('slow')
     );
-    $('#noticesPanel').addClass('panel-info');
+    addNoticesInfoClass();
 }
 
 function getUserRecord(){
@@ -672,6 +686,10 @@ function resetFormCSS(form){
             $(form[i]).parent('div').removeClass('has-error');
         }
     }
+}
+
+function addNoticesInfoClass(){
+    $('#noticesPanel').addClass('panel-info');
 }
 
 function removeNoticesInfoClass(){
