@@ -3,6 +3,7 @@ window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
+window.eventCustomNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCustomNotification';
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the Sting in javascript
 window.events = {};
 
@@ -423,6 +424,10 @@ function notifyEvent(documentId){
             *  Also using form to create json post data from form's elements
             */
             var form = this;
+            var postURL = window.eventCRUDNotificationFlow; 
+            if (form["ntfctnCstm"].checked)  {
+                postURL = window.eventCustomNotificationFlow; 
+            }
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = sessionStorage.bridgeitUToken;
@@ -430,7 +435,7 @@ function notifyEvent(documentId){
                 postData['pushSubject'] = form[0].value;
                 // TODO: Flow for location context
                 $.ajax({
-                    url : window.eventCRUDNotificationFlow,
+                    url : postURL,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
