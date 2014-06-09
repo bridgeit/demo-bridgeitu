@@ -5,6 +5,7 @@ window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the Sting in javascript
 window.events = {};
+window.userRecord = {};
 
 function anonymousLogin(){
     // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
@@ -81,6 +82,7 @@ function studentLoginDone(data, textStatus, jqxhr){
 }
 
 function studentLoggedIn(){
+    getUserRecord();
     uiLoggedIn(localStorage.bridgeitUUsername);
     $('#ticketsEvntFrm')[0].reset();
     $('#ticketsPanel').show('slow');
@@ -221,8 +223,8 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
-            // Using Document Service to store ticket purchases, this will skip the ticket purchase documents
-            if(!obj.access_token){
+            // Using Document Service to store users, this will skip the user documents
+            if(!obj.location){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
@@ -238,8 +240,8 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
-            // Using Document Service to store ticket purchases, this will skip the ticket purchase documents
-            if(!obj.access_token){
+            // Using Document Service to store users, this will skip the user documents
+            if(!obj.location){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
@@ -528,6 +530,51 @@ var createEventDone = function(name){
     };
 };
 
+function locationSaveSubmit(){
+    $('#lctnFrm').submit(function( event ) {
+        event.preventDefault();
+        if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json Post data from form's elements
+            */
+            var form = this;
+            if(validateCurrentLocation(form)){
+                var location = $('input[name="crrntLctn"]:checked').val();
+                var postData = {};
+                postData['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
+                postData['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
+                postData['location'] = location;
+                postData['tickets'] = (window.userRecord['_id'] ? window.userRecord['tickets'] : []);
+                $.ajax({
+                    url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(requestFail)
+                .done(locationSaveDone(location));
+            }
+        }else{
+            studentLogout();
+        }
+    });
+}
+
+var locationSaveDone = function(location){
+    return function(data, textStatus, jqxhr){
+        if(jqxhr.status == 201){
+            $('#alertDiv').prepend(
+                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + location + '</strong> Location Saved</small></div>').hide().fadeIn('slow')
+            );
+            $('#noticesPanel').addClass('panel-info');
+            $('#crrntLctn').html(location);
+        }else{
+            serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
+        }
+    };
+};
+
 function requestFail(jqxhr, textStatus, errorThrown){
     $('#alertDiv').prepend(
         $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.</small></div>').hide().fadeIn('slow')
@@ -540,6 +587,36 @@ function serviceRequestUnexpectedStatusAlert(source, status){
         $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.</small></div>').hide().fadeIn('slow')
     );
     $('#noticesPanel').addClass('panel-info');
+}
+
+function getUserRecord(){
+    $.getJSON( window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
+    .fail(getUserRecordFail)
+    .done(getUserRecordDone);
+}
+
+function getUserRecordDone(data, textStatus, jqxhr){
+    if( jqxhr.status == 200){
+        window.userRecord = data;
+        if(data.location){
+            $('#crrntLctn').html(data.location);
+            $('input[value="' + data.location + '"]').prop('checked', true)
+        }else{
+            resetLocationPanel();
+        }
+    }else{
+        serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
+    }
+}
+
+function getUserRecordFail(jqxhr, textStatus, errorThrown){
+    if(jqxhr.status == 404){
+        // User Record doesn't exist.
+        window.userRecord = {};
+        resetLocationPanel();
+    }else{
+        requestFail(jqxhr, textStatus, errorThrown);
+    }
 }
 
 function validate(form){
@@ -555,6 +632,16 @@ function validate(form){
         }else{
             $(form[i]).parent('div').removeClass('has-error');
         }
+    }
+    return formValid;
+}
+
+function validateCurrentLocation(form){
+    var formValid = $('input[name="crrntLctn"]:checked').val();
+    if(formValid){
+        $('#lctnPnlbdy').removeClass('has-error');
+    }else{
+        $('#lctnPnlbdy').addClass('has-error');
     }
     return formValid;
 }
@@ -598,4 +685,9 @@ function toggleCreateNotifyEvent(){
 
 function tokenValid(token, expires, type){
     return token && (parseInt(expires) > new Date().getTime());
+}
+
+function resetLocationPanel(){
+    $('#crrntLctn').html('');
+    $('input[name="crrntLctn"]').prop('checked', false);
 }
