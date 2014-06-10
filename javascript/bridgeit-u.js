@@ -2,6 +2,7 @@ window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
+window.purchaseCancelFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchaseCancel';
 window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
 window.eventCustomNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCustomNotification';
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
@@ -84,7 +85,8 @@ function studentLoginDone(data, textStatus, jqxhr){
 function studentLoggedIn(){
     getUserRecord();
     uiLoggedIn(localStorage.bridgeitUUsername);
-    $('#ticketsEvntFrm')[0].reset();
+    $('#purchaseEvntFrm')[0].reset();
+    $('#purchasePanel').show('slow');
     $('#ticketsPanel').show('slow');
     $('#locationPanel').show('slow');
 }
@@ -93,6 +95,7 @@ function studentLogout(){
     localStorage.removeItem('bridgeitUToken');
     localStorage.removeItem('bridgeitUTokenExpires');
     localStorage.removeItem('bridgeitUUsername');
+    $('#purchasePanel').hide();
     $('#ticketsPanel').hide();
     $('#locationPanel').hide();
     $('#loginIcon').html('Login');
@@ -226,7 +229,7 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
             // Using Document Service to store users, this will skip the user documents
-            if(!obj.location){
+            if(!obj.type){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
@@ -243,7 +246,7 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         evntLstDiv.html("");
         $.each(data, function(i, obj) {
             // Using Document Service to store users, this will skip the user documents
-            if(!obj.location){
+            if(!obj.type){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
@@ -251,6 +254,67 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
         });
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
+    }
+}
+
+function displayTickets(){
+    var evntTcktLst = $('#evntTcktLst');
+    evntTcktLst.html('');
+    for (var key in window.events) {
+       if (window.events.hasOwnProperty(key) ){
+           for (var i=0; i<window.userRecord.tickets.length; i++){
+               if(window.userRecord.tickets[i].name == window.events[key]){
+                   evntTcktLst.append('<div class="list-group-item">' + window.userRecord.tickets[i].name + '<a title="Cancel Ticket Purchase" onclick="cancelTicketPurchase(\'' + window.userRecord.tickets[i].name + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a></div>');
+               }
+           }
+
+       }
+    }
+}
+
+function cancelTicketPurchase(eventName){
+    var postData = {};
+    postData['access_token'] = localStorage.bridgeitUToken;
+    postData['eventname'] = eventName;
+    // Also submit user record to be updated in purchaseCancelFlow
+    var submittedUserRecord = {};
+    submittedUserRecord['_id'] = window.userRecord['_id'];
+    submittedUserRecord['type'] = window.userRecord['type'];
+    submittedUserRecord['location'] = window.userRecord['location'];
+    submittedUserRecord['tickets'] = window.userRecord['tickets'].slice(0);
+    for(var i=0; i<submittedUserRecord['tickets'].length; i++){
+        if(submittedUserRecord['tickets'][i].name == eventName){
+            submittedUserRecord['tickets'].splice(i,1);
+            break;
+        }
+    }
+    postData['user_record'] = submittedUserRecord;
+    $.ajax({
+        url : window.purchaseCancelFlow,
+        type: 'POST',
+        dataType : 'json',
+        contentType: 'application/json; charset=utf-8',
+        data : JSON.stringify(postData)
+    })
+    .fail(purchaseFail)
+    .done(purchaseCancelDone);
+}
+
+function purchaseCancelDone(data, textStatus, jqxhr){
+    if(jqxhr.status == 200){
+        for(var i=0; i<window.userRecord['tickets'].length; i++){
+            if(window.userRecord['tickets'][i].name == data.eventname){
+                window.userRecord['tickets'].splice(i,1);
+                break;
+            }
+        }
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.eventname + '</strong> ticket purchase cancelled.</small></div>').hide().fadeIn('slow')
+        );
+        addNoticesInfoClass();
+        displayTickets();
+    }else{
+        serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
     }
 }
 
@@ -271,12 +335,12 @@ function purchaseEvent(documentId){
 
 function purchaseGetEventDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
-        $('#ticketsPanel').addClass('panel-primary');
+        $('#purchasePanel').addClass('panel-primary');
         $('#purchaseBttn').prop('disabled', false);
-        document.getElementById('ticketsQuantity').value = null;
-        document.getElementById('ticketsName').value = data.name;
-        document.getElementById('ticketsDetails').value = data.details;
-        $('#ticketsEvntFrm').off('submit').on('submit',(function( event ) {
+        document.getElementById('purchaseQuantity').value = null;
+        document.getElementById('purchaseName').value = data.name;
+        document.getElementById('purchaseDetails').value = data.details;
+        $('#purchaseEvntFrm').off('submit').on('submit',(function( event ) {
             event.preventDefault();
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json post data from form's elements
@@ -331,12 +395,13 @@ var purchaseEventDone = function(ticketArray){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 200){
             window.userRecord['tickets'] = window.userRecord['tickets'].concat(ticketArray);
+            displayTickets();
             $('#alertDiv').prepend(
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.</small></div>').hide().fadeIn('slow')
             );
             addNoticesInfoClass();
-            $('#ticketsEvntFrm')[0].reset();
-            $('#ticketsPanel').removeClass('panel-primary');
+            $('#purchaseEvntFrm')[0].reset();
+            $('#purchasePanel').removeClass('panel-primary');
             $('#purchaseBttn').prop('disabled', true);
         }else{
             serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
@@ -620,6 +685,7 @@ function getUserRecord(){
 function getUserRecordDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         window.userRecord = data;
+        displayTickets();
         if(data.location){
             $('#crrntLctn').html(data.location);
             $('input[value="' + data.location + '"]').prop('checked', true)
@@ -672,6 +738,9 @@ function uiLoggedIn(username){
     $('#loginIcon').html('Welcome: ' + username);
     resetLoginForm();
     $('#loginModal').modal('hide');
+    // clear previous user notices
+    removeNoticesInfoClass();
+    $('#alertDiv').html('');
 }
 
 function resetLoginForm(){
