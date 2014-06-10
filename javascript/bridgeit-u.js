@@ -285,6 +285,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
                 postData['access_token'] = localStorage.bridgeitUToken;
                 postData['eventname'] = form[0].value;
                 postData['quantity'] = form[1].value;
+                // Also submit user record to be updated in purchaseFlow
                 var submittedUserRecord = {};
                 submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
                 submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
