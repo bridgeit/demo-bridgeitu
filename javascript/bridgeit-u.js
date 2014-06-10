@@ -178,6 +178,8 @@ function registerPushUsernameGroup(username){
 }
 
 function handlePush(){
+    $('#noticesPanel').addClass('notice');
+    setTimeout("$('#noticesPanel').removeClass('notice');", 3000);
     retrieveEvents();
 }
 

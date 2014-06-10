@@ -2,3 +2,7 @@ a.list-group-item:focus{
     background-color: #428BCA;
     color: #fff;
 }
+
+.notice {
+    background-color: red;
+}
