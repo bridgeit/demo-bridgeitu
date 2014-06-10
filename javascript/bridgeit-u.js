@@ -178,9 +178,10 @@ function registerPushUsernameGroup(username){
 }
 
 function handlePush(){
-    $('#noticesPanel').addClass('notice');
-    setTimeout("$('#noticesPanel').removeClass('notice');", 3000);
     retrieveEvents();
+    getNotifications(function (data) {
+        data.forEach(displayNotification);
+    });
 }
 
 function adminPermissionFail(jqxhr, textStatus, errorThrown){
@@ -442,6 +443,9 @@ function notifyEvent(documentId){
             *  Also using form to create json post data from form's elements
             */
             var form = this;
+            var eventName = window.events[documentId];
+            var pushSubject = form[0].value;
+            storeNotification(eventName, pushSubject, 20);
             var postURL = window.eventCRUDNotificationFlow; 
             if (form["ntfctnCstm"].checked)  {
                 postURL = window.eventCustomNotificationFlow; 
@@ -449,8 +453,8 @@ function notifyEvent(documentId){
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = sessionStorage.bridgeitUToken;
-                postData['eventName'] = window.events[documentId];
-                postData['pushSubject'] = form[0].value;
+                postData['eventName'] = eventName;
+                postData['pushSubject'] = pushSubject;
                 // TODO: Flow for location context
                 $.ajax({
                     url : postURL,
@@ -466,6 +470,50 @@ function notifyEvent(documentId){
             adminLogout();
         }
     }));
+}
+
+function getNotifications(callback)  {
+    var now = new Date();
+    var query = {
+        type: "notification",
+        expiry: { $gt: now.getTime() }
+    }
+    $.getJSON(window.documentService +
+            '?query=' + JSON.stringify(query) +
+            '&access_token=' + localStorage.bridgeitUToken)
+    .done(callback);
+}
+
+var notifications = {};
+
+function displayNotification(item)  {
+    //could also clean up based on expiry
+    if (notifications[item.timestamp])  {
+        return;
+    }
+    notifications[item.timestamp] = item;
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + item.eventName + '</strong> '+ item.pushSubject +'</small></div>').hide().fadeIn('slow')
+    );
+}
+
+function storeNotification(eventName, pushSubject, lifeseconds)  {
+    var notification = {};
+    var now = new Date();
+    notification.type = "notification";
+    notification.timestamp = now.getTime();
+    notification.expiry = now.getTime() + (lifeseconds * 1000);
+    notification.eventName = eventName;
+    notification.pushSubject = pushSubject;
+    $.ajax({
+        url : window.documentService + '/' + '?access_token=' + 
+                sessionStorage.bridgeitUToken,
+        type: 'POST',
+        dataType : 'json',
+        contentType: 'application/json; charset=utf-8',
+        data : JSON.stringify(notification)
+    })
+    .fail(requestFail);
 }
 
 function notifyCRUDEvent(){
