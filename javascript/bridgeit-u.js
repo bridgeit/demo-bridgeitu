@@ -13,10 +13,10 @@ window.map = null;
 window.markers = [];
 window.center = null;
 window.mapOptions = {
-    zoom: 8,
+    zoom: 15,
     maxZoom: 16,
     draggable: false,
-    center: new google.maps.LatLng(-34.397, 150.644),
+    center: new google.maps.LatLng(51.07816,-114.135801),
     mapTypeId: google.maps.MapTypeId.ROADMAP
 };
 window.counter = 0;
@@ -721,7 +721,12 @@ function getUserRecordDone(data, textStatus, jqxhr){
         displayTickets();
         if(data.location){
             $('#crrntLctn').html(data.location);
-            $('input[value="' + data.location + '"]').prop('checked', true)
+            window.markers.push(new google.maps.Marker({
+              position: window.map.getCenter(),
+              map: window.map,
+              title: window.currentLocation
+              })
+            );
         }else{
             resetLocationPanel();
         }
@@ -807,7 +812,7 @@ function tokenValid(token, expires, type){
 
 function resetLocationPanel(){
     $('#crrntLctn').html('');
-    $('input[name="crrntLctn"]').prop('checked', false);
+    clearOverlays();
 }
 
 function locationMapInit(){
@@ -828,10 +833,7 @@ function locationMapInit(){
         window.markers.push(new google.maps.Marker({
           position: event.latLng,
           map: window.map,
-          title: window.currentLocation,
-          icon: { path : google.maps.SymbolPath.CIRCLE,
-                  scale: 7
-                }
+          title: window.currentLocation
           })
         );
 
