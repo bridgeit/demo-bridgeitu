@@ -8,6 +8,21 @@ window.eventCustomNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eve
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
 window.events = {};
 window.userRecord = {};
+// gmap location
+window.map = null;
+window.markers = [];
+window.center = null;
+window.mapOptions = {
+    zoom: 8,
+    maxZoom: 16,
+    draggable: false,
+    center: new google.maps.LatLng(-34.397, 150.644),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+};
+window.counter = 0;
+window.locations = ['Residence','Computer Science Building','Off Campus'];
+window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
+window.currentLocation = null;
 
 function anonymousLogin(){
     // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
@@ -542,7 +557,7 @@ function getNotifications(callback)  {
     var query = {
         type: "notification",
         expiry: { $gt: now.getTime() }
-    }
+    };
     $.getJSON(window.documentService +
             '?query=' + JSON.stringify(query) +
             '&access_token=' + localStorage.bridgeitUToken)
@@ -665,37 +680,6 @@ var createEventDone = function(name){
     };
 };
 
-function locationSaveSubmit(){
-    $('#lctnFrm').submit(function( event ) {
-        event.preventDefault();
-        if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            /* form element used to generically validate form elements (could also serialize the form if necessary)
-            *  Also using form to create json Post data from form's elements
-            */
-            var form = this;
-            if(validateCurrentLocation(form)){
-                var location = $('input[name="crrntLctn"]:checked').val();
-                var postData = {};
-                postData['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
-                postData['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
-                postData['location'] = location;
-                postData['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
-                $.ajax({
-                    url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(requestFail)
-                .done(locationSaveDone(location));
-            }
-        }else{
-            studentLogout();
-        }
-    });
-}
-
 var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 201){
@@ -773,16 +757,6 @@ function validate(form){
     return formValid;
 }
 
-function validateCurrentLocation(form){
-    var formValid = $('input[name="crrntLctn"]:checked').val();
-    if(formValid){
-        $('#lctnPnlbdy').removeClass('has-error');
-    }else{
-        $('#lctnPnlbdy').addClass('has-error');
-    }
-    return formValid;
-}
-
 function uiLoggedIn(username){
     $('#loginIcon').html('Welcome: ' + username);
     resetLoginForm();
@@ -834,4 +808,68 @@ function tokenValid(token, expires, type){
 function resetLocationPanel(){
     $('#crrntLctn').html('');
     $('input[name="crrntLctn"]').prop('checked', false);
+}
+
+function locationMapInit(){
+    window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
+
+    google.maps.event.addDomListener(window.map, 'idle', function() {
+      calculateCenter();
+    });
+    google.maps.event.addDomListener(window, 'resize', function() {
+        window.map.setCenter(window.center);
+    });
+    setTimeout(function(){google.maps.event.trigger(window.map, 'resize')},1000);
+
+    google.maps.event.addListener(window.map, 'click', function(event) {
+        var locationIndex = ((window.randomLocation + (window.counter++)) % 3) + 1;
+        window.currentLocation = window.locations[locationIndex-1];
+        clearOverlays();
+        window.markers.push(new google.maps.Marker({
+          position: event.latLng,
+          map: window.map,
+          title: window.currentLocation,
+          icon: { path : google.maps.SymbolPath.CIRCLE,
+                  scale: 7
+                }
+          })
+        );
+
+        if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+            var postData = {};
+            postData['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
+            postData['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
+            postData['location'] = window.currentLocation;
+            postData['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
+            $.ajax({
+                url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
+                type: 'POST',
+                dataType : 'json',
+                contentType: 'application/json; charset=utf-8',
+                data : JSON.stringify(postData)
+            })
+            .fail(requestFail)
+            .done(locationSaveDone(window.currentLocation));
+        }else{
+            studentLogout();
+        }
+    });
+
+    navigator.geolocation.watchPosition(
+        function(pos) {
+            var lat = pos.coords.latitude;
+            var lon = pos.coords.longitude;
+            window.map.setCenter(new google.maps.LatLng(lat,lon) );
+    });
+}
+
+function calculateCenter() {
+    window.center = window.map.getCenter();
+}
+
+function clearOverlays() {
+    for (var i = 0; i < window.markers.length; i++ ) {
+        window.markers[i].setMap(null);
+    }
+    window.markers.length = 0;
 }

@@ -12,7 +12,7 @@
     <!--[if lt IE 9]>
       <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=true&libraries=geometry"></script>
     <!-- bridgeit.js UNSTABLE VERSION -->
     <script src="http://bridgeit.github.io/bridgeit.js/src/bridgeit.js"></script>
     <!-- bridgeit.js STABLE VERSION
@@ -131,40 +131,8 @@
                             </div>
                         </div>
                         <div id="lctnPnlbdy" class="panel-body">
-                            <form id="lctnFrm" class="form form-vertical">
-                                <div class="radio">
-                                    <label>
-                                        <input id="residence" name="crrntLctn"
-                                               value="Residence"
-                                               type="radio">
-                                        Residence
-                                    </label>
-                                </div>
-                                <div class="radio">
-                                    <label>
-                                        <input id="cmptrScncBldng" name="crrntLctn"
-                                               value="Computer Science Building"
-                                               type="radio">
-                                        Computer Science Building
-                                    </label>
-                                </div>
-                                <div class="radio">
-                                    <label>
-                                        <input id="offCampus" name="crrntLctn"
-                                               value="Off Campus"
-                                               type="radio">
-                                        Off Campus
-                                    </label>
-                                </div>
-                                <div class="control-group">
-                                    <label></label>
-                                    <div class="controls">
-                                    <button id="saveLctnBttn" type="submit" class="btn btn-primary">
-                                      Save
-                                    </button>
-                                    </div>
-                                </div>
-                            </form>
+                            <div id="map-canvas" style="margin: 0 0 20px 0;height:380px;">
+                            </div>
                         </div>
                     </div>
                 </div><!--/col-span-6-->
@@ -287,7 +255,7 @@
 
         $('#purchaseBttn').prop('disabled', true);
         loginSubmit();
-        locationSaveSubmit();
+        locationMapInit();
         // Anonymous token for viewing events
         if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
             retrieveEvents();
