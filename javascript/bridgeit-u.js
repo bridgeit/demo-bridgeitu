@@ -560,6 +560,7 @@ function displayNotification(item)  {
     $('#alertDiv').prepend(
         $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + item.eventName + '</strong> '+ item.pushSubject +'</small></div>').hide().fadeIn('slow')
     );
+    addNoticesInfoClass();
 }
 
 function storeNotification(eventName, pushSubject, lifeseconds)  {
