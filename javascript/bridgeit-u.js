@@ -717,16 +717,14 @@ function getUserRecordDone(data, textStatus, jqxhr){
         if(data.location){
             $('#crrntLctn').html(data.location);
             window.currentLocation = data.location;
-            if(window.currentLocation){
-                clearOverlays();
-                window.markers.push(new google.maps.Marker({
-                  position: window.map.getCenter(),
-                  map: window.map,
-                  title: window.currentLocation
-                  })
-                );
-                google.maps.event.trigger(window.map, 'resize');
-            }
+            clearOverlays();
+            window.markers.push(new google.maps.Marker({
+              position: window.map.getCenter(),
+              map: window.map,
+              title: window.currentLocation
+              })
+            );
+            google.maps.event.trigger(window.map, 'resize');
         }else{
             resetLocationPanel();
         }
@@ -873,10 +871,6 @@ function geolocationSetPosition(pos){
       })
     );
     google.maps.event.trigger(window.map, 'resize');
-}
-
-function calculateCenter() {
-    window.center = window.map.getCenter();
 }
 
 function clearOverlays() {
