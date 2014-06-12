@@ -12,13 +12,7 @@ window.userRecord = {};
 window.map = null;
 window.markers = [];
 window.center = null;
-window.mapOptions = {
-    zoom: 15,
-    maxZoom: 16,
-    draggable: false,
-    center: new google.maps.LatLng(51.07816,-114.135801),
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-};
+window.mapOptions = {};
 window.counter = 0;
 window.locations = ['Residence','Computer Science Building','Off Campus'];
 window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
@@ -104,6 +98,7 @@ function studentLoggedIn(){
     $('#purchasePanel').show('slow');
     $('#ticketsPanel').show('slow');
     $('#locationPanel').show('slow');
+    google.maps.event.trigger(window.map, 'resize');
 }
 
 function studentLogout(){
@@ -721,12 +716,17 @@ function getUserRecordDone(data, textStatus, jqxhr){
         displayTickets();
         if(data.location){
             $('#crrntLctn').html(data.location);
-            window.markers.push(new google.maps.Marker({
-              position: window.map.getCenter(),
-              map: window.map,
-              title: window.currentLocation
-              })
-            );
+            window.currentLocation = data.location;
+            if(window.currentLocation){
+                clearOverlays();
+                window.markers.push(new google.maps.Marker({
+                  position: window.map.getCenter(),
+                  map: window.map,
+                  title: window.currentLocation
+                  })
+                );
+                google.maps.event.trigger(window.map, 'resize');
+            }
         }else{
             resetLocationPanel();
         }
@@ -816,15 +816,15 @@ function resetLocationPanel(){
 }
 
 function locationMapInit(){
+    window.mapOptions = {
+        zoom: 15,
+        maxZoom: 16,
+        draggable: false,
+        center: new google.maps.LatLng(51.07816,-114.135801),
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
-
-    google.maps.event.addDomListener(window.map, 'idle', function() {
-      calculateCenter();
-    });
-    google.maps.event.addDomListener(window, 'resize', function() {
-        window.map.setCenter(window.center);
-    });
-    setTimeout(function(){google.maps.event.trigger(window.map, 'resize')},1000);
+    navigator.geolocation.getCurrentPosition(geolocationSetPosition);
 
     google.maps.event.addListener(window.map, 'click', function(event) {
         var locationIndex = ((window.randomLocation + (window.counter++)) % 3) + 1;
@@ -857,12 +857,22 @@ function locationMapInit(){
         }
     });
 
-    navigator.geolocation.watchPosition(
-        function(pos) {
-            var lat = pos.coords.latitude;
-            var lon = pos.coords.longitude;
-            window.map.setCenter(new google.maps.LatLng(lat,lon) );
-    });
+    navigator.geolocation.watchPosition(geolocationSetPosition);
+}
+
+function geolocationSetPosition(pos){
+    var lat = pos.coords.latitude;
+    var lon = pos.coords.longitude;
+    window.map.setCenter(new google.maps.LatLng(lat,lon) );
+
+    clearOverlays();
+    window.markers.push(new google.maps.Marker({
+      position: window.map.getCenter(),
+      map: window.map,
+      title: 'You are here.'
+      })
+    );
+    google.maps.event.trigger(window.map, 'resize');
 }
 
 function calculateCenter() {
