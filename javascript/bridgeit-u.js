@@ -12,13 +12,7 @@ window.userRecord = {};
 window.map = null;
 window.markers = [];
 window.center = null;
-window.mapOptions = {
-    zoom: 15,
-    maxZoom: 16,
-    draggable: false,
-    center: new google.maps.LatLng(51.07816,-114.135801),
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-};
+window.mapOptions = {};
 window.counter = 0;
 window.locations = ['Residence','Computer Science Building','Off Campus'];
 window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
@@ -807,6 +801,13 @@ function tokenValid(token, expires, type){
 }
 
 function locationMapInit(){
+    window.mapOptions = {
+        zoom: 15,
+        maxZoom: 16,
+        draggable: false,
+        center: new google.maps.LatLng(51.07816,-114.135801),
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
     navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:5000});
 
