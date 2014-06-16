@@ -5,6 +5,14 @@ window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
 window.purchaseCancelFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchaseCancel';
 window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
 window.eventCustomNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCustomNotification';
+window.flowLookupObject = {1 : window.eventCRUDNotificationFlow,
+                           2 : window.eventCRUDNotificationFlow,
+                           3 : window.eventCRUDNotificationFlow,
+                           4 : window.eventCRUDNotificationFlow,
+                           5 : window.eventCRUDNotificationFlow,
+                           6 : window.eventCRUDNotificationFlow,
+                           7 : window.eventCRUDNotificationFlow,
+                           8 : window.eventCustomNotificationFlow};
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
 window.events = {};
 window.userRecord = {};
@@ -359,8 +367,8 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = localStorage.bridgeitUToken;
-                postData['eventname'] = form[0].value;
-                postData['quantity'] = form[1].value;
+                postData['eventname'] = form.purchaseName.value;
+                postData['quantity'] = form.purchaseQuantity.value;
                 // Also submit user record to be updated in purchaseFlow
                 var submittedUserRecord = {};
                 submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
@@ -368,8 +376,8 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
                 submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
                 submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
                 var ticketArray = [];
-                for(var i=0; i<form[1].value; i++){
-                    ticketArray.push({name:form[0].value});
+                for(var i=0; i<form.purchaseQuantity.value; i++){
+                    ticketArray.push({name:form.purchaseName.value});
                 }
                 submittedUserRecord['tickets'] = submittedUserRecord['tickets'].concat(ticketArray);
                 postData['user_record'] = submittedUserRecord;
@@ -473,8 +481,8 @@ function editGetEventDone(data, textStatus, jqxhr){
             var form = this;
             if(validate(form)){
                 var putData = {};
-                putData['name'] = form[0].value;
-                putData['details'] = form[1].value;
+                putData['name'] = form.edtName.value;
+                putData['details'] = form.edtDetails.value;
                 $.ajax({
                     url : window.documentService + '/' + data._id + '?access_token=' + sessionStorage.bridgeitUToken,
                     type: 'PUT',
@@ -518,12 +526,9 @@ function notifyEvent(documentId){
             */
             var form = this;
             var eventName = window.events[documentId];
-            var pushSubject = form[0].value;
+            var pushSubject = form.ntfctnText.value;
             storeNotification(eventName, pushSubject, 20);
-            var postURL = window.eventCRUDNotificationFlow; 
-            if (form["ntfctnCstm"].checked)  {
-                postURL = window.eventCustomNotificationFlow; 
-            }
+
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = sessionStorage.bridgeitUToken;
@@ -531,7 +536,7 @@ function notifyEvent(documentId){
                 postData['pushSubject'] = pushSubject;
                 // TODO: Flow for location context
                 $.ajax({
-                    url : postURL,
+                    url : window.flowLookupObject[form.ntfctnSlct.value],
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
@@ -640,8 +645,8 @@ function createEventSubmit(){
             var form = this;
             if(validate(form)){
                 var postData = {};
-                postData['name'] = form[0].value;
-                postData['details'] = form[1].value;
+                postData['name'] = form.crtname.value;
+                postData['details'] = form.crtdetails.value;
                 $.ajax({
                     url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
                     type: 'POST',
@@ -650,7 +655,7 @@ function createEventSubmit(){
                     data : JSON.stringify(postData)
                 })
                 .fail(requestFail)
-                .done(createEventDone(form[0].value));
+                .done(createEventDone(form.crtname.value));
             }
         }else{
             adminLogout();

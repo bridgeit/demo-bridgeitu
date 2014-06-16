@@ -137,7 +137,7 @@
                                 <div class="control-group">
                                   <label>Event Name</label>
                                   <div class="controls">
-                                   <input id="name" name="name"
+                                   <input name="crtname"
                                           type="text"
                                           class="form-control"
                                           placeholder="Enter Event Name">
@@ -146,7 +146,7 @@
                                 <div class="control-group">
                                   <label>Event Details</label>
                                   <div class="controls">
-                                    <textarea id="details" name="details"
+                                    <textarea name="crtdetails"
                                               class="form-control"
                                               placeholder="Enter Event Details"></textarea>
                                   </div>
@@ -175,29 +175,39 @@
                         <div class="panel-body">
                             <form id="evntNtfctnFrm" class="form form-vertical">
                                 <div class="control-group">
-                                  <label id="ntfctnTextLabel"></label>
-                                  <div class="controls">
-                                   <input id="ntfctnText" name="ntfctnText"
-                                          type="text"
-                                          class="form-control"
-                                          placeholder="Enter Notification Text">
-                                  </div>
+                                    <label id="ntfctnTextLabel"></label>
+                                    <div class="controls">
+                                       <input name="ntfctnText"
+                                              type="text"
+                                              class="form-control"
+                                              placeholder="Enter Notification Text">
+                                    </div>
                                 </div>
                                 <div class="control-group">
-                                  <p>
+                                    <label>
+                                        Flow
+                                    </label>
+                                    <div class="controls">
+                                        <select name="ntfctnSlct" class="form-control">
+                                            <option value="1">All</option>
+                                            <option value="2">All Students</option>
+                                            <option value="3">No ticket, on campus</option>
+                                            <option value="4">Ticket holders</option>
+                                            <option value="5">Residence</option>
+                                            <option value="6">On-Campus</option>
+                                            <option value="7">Off-Campus</option>
+                                            <option value="8">Custom</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control-group">
                                     <label></label>
                                     <div class="controls">
-                                    <button type="submit" class="btn btn-primary">
-                                      Send
-                                    </button>
-                                    <div class="checkbox-inline">
-                                        <label>
-                                          <input type="checkbox" id="ntfctnCstm" name="ntfctnCstm">Custom
-                                        </label>
+                                        <button type="submit" class="btn btn-primary">
+                                          Send
+                                        </button>
+                                        <button class="btn pull-right" type="button" onclick="toggleCreateNotifyEvent();">Cancel</button>
                                     </div>
-                                    <button class="btn pull-right" type="button" onclick="toggleCreateNotifyEvent();">Cancel</button>
-                                    </div>
-                                  </p>
                                 </div>
                             </form>
                         </div>
