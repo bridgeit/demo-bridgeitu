@@ -808,18 +808,13 @@ function tokenValid(token, expires, type){
 
 function locationMapInit(){
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
-    navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:10000});
+    navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:5000});
 
     google.maps.event.addListener(window.map, 'click', function(event) {
         var locationIndex = ((window.randomLocation + (window.counter++)) % 3) + 1;
         window.currentLocation = window.locations[locationIndex-1];
-        clearOverlays();
-        window.markers.push(new google.maps.Marker({
-          position: event.latLng,
-          map: window.map,
-          title: window.currentLocation
-          })
-        );
+        window.map.setCenter(event.latLng);
+        placeMapMarker();
 
         if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             var postData = {};
@@ -840,7 +835,8 @@ function locationMapInit(){
             studentLogout();
         }
     });
-
+    // TODO:  This call appears to prevent future calls to navigator.geolocation.getCurrentPosition from working in Chrome
+    //        Investigate when needed.
     //navigator.geolocation.watchPosition(geolocationSetPosition);
 }
 
@@ -848,7 +844,11 @@ function geolocationSetPosition(pos){
     var lat = pos.coords.latitude;
     var lon = pos.coords.longitude;
     window.map.setCenter(new google.maps.LatLng(lat,lon) );
+    placeMapMarker();
+    google.maps.event.trigger(window.map, 'resize');
+}
 
+function placeMapMarker(){
     clearOverlays();
     window.markers.push(new google.maps.Marker({
       position: window.map.getCenter(),
@@ -856,7 +856,6 @@ function geolocationSetPosition(pos){
       title: window.currentLocation
       })
     );
-    setTimeout(function(){google.maps.event.trigger(window.map, 'resize')},1000);
 }
 
 function geolocationError(){
