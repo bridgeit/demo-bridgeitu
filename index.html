@@ -255,7 +255,6 @@
 
         $('#purchaseBttn').prop('disabled', true);
         loginSubmit();
-        locationMapInit();
         // Anonymous token for viewing events
         if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
             retrieveEvents();

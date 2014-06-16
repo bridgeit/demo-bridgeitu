@@ -12,11 +12,17 @@ window.userRecord = {};
 window.map = null;
 window.markers = [];
 window.center = null;
-window.mapOptions = {};
+window.mapOptions = {
+    zoom: 15,
+    maxZoom: 16,
+    draggable: false,
+    center: new google.maps.LatLng(51.07816,-114.135801),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+};
 window.counter = 0;
 window.locations = ['Residence','Computer Science Building','Off Campus'];
 window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
-window.currentLocation = null;
+window.currentLocation = 'You are here.';
 
 function anonymousLogin(){
     // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
@@ -92,13 +98,12 @@ function studentLoginDone(data, textStatus, jqxhr){
 }
 
 function studentLoggedIn(){
-    getUserRecord();
-    uiLoggedIn(localStorage.bridgeitUUsername);
     $('#purchaseEvntFrm')[0].reset();
     $('#purchasePanel').show('slow');
     $('#ticketsPanel').show('slow');
-    $('#locationPanel').show('slow');
-    google.maps.event.trigger(window.map, 'resize');
+    $('#locationPanel').show();
+    uiLoggedIn(localStorage.bridgeitUUsername);
+    initializeStudent();
 }
 
 function studentLogout(){
@@ -704,40 +709,33 @@ function serviceRequestUnexpectedStatusAlert(source, status){
     addNoticesInfoClass();
 }
 
-function getUserRecord(){
+function initializeStudent(){
     $.getJSON( window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-    .fail(getUserRecordFail)
-    .done(getUserRecordDone);
+    .fail(initializeStudentFail)
+    .done(initializeStudentDone);
 }
 
-function getUserRecordDone(data, textStatus, jqxhr){
+function initializeStudentDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         window.userRecord = data;
         displayTickets();
+        var lctnLabel = $('#crrntLctn');
+        lctnLabel.html('');
         if(data.location){
-            $('#crrntLctn').html(data.location);
+            lctnLabel.html(data.location);
             window.currentLocation = data.location;
-            clearOverlays();
-            window.markers.push(new google.maps.Marker({
-              position: window.map.getCenter(),
-              map: window.map,
-              title: window.currentLocation
-              })
-            );
-            google.maps.event.trigger(window.map, 'resize');
-        }else{
-            resetLocationPanel();
         }
+        locationMapInit();
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
     }
 }
 
-function getUserRecordFail(jqxhr, textStatus, errorThrown){
+function initializeStudentFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 404){
         // User Record doesn't exist.
         window.userRecord = {};
-        resetLocationPanel();
+        $('#crrntLctn').html('');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -808,21 +806,9 @@ function tokenValid(token, expires, type){
     return token && (parseInt(expires) > new Date().getTime());
 }
 
-function resetLocationPanel(){
-    $('#crrntLctn').html('');
-    clearOverlays();
-}
-
 function locationMapInit(){
-    window.mapOptions = {
-        zoom: 15,
-        maxZoom: 16,
-        draggable: false,
-        center: new google.maps.LatLng(51.07816,-114.135801),
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
-    navigator.geolocation.getCurrentPosition(geolocationSetPosition);
+    navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:10000});
 
     google.maps.event.addListener(window.map, 'click', function(event) {
         var locationIndex = ((window.randomLocation + (window.counter++)) % 3) + 1;
@@ -855,7 +841,7 @@ function locationMapInit(){
         }
     });
 
-    navigator.geolocation.watchPosition(geolocationSetPosition);
+    //navigator.geolocation.watchPosition(geolocationSetPosition);
 }
 
 function geolocationSetPosition(pos){
@@ -867,10 +853,17 @@ function geolocationSetPosition(pos){
     window.markers.push(new google.maps.Marker({
       position: window.map.getCenter(),
       map: window.map,
-      title: 'You are here.'
+      title: window.currentLocation
       })
     );
-    google.maps.event.trigger(window.map, 'resize');
+    setTimeout(function(){google.maps.event.trigger(window.map, 'resize')},1000);
+}
+
+function geolocationError(){
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Geolocation</strong> problem setting map location.</small></div>').hide().fadeIn('slow')
+    );
+    addNoticesInfoClass();
 }
 
 function clearOverlays() {
