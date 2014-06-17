@@ -1,11 +1,16 @@
-window.purchaseFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchase';
-window.purchaseCancelFlow = 'http://dev.bridgeit.io/code/bridgeit.u/purchaseCancel';
+window.ticketFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticket';
 window.userRecord = {};
 // gmap location
 window.map = null;
+window.mapOptions = {
+    zoom: 15,
+    maxZoom: 16,
+    draggable: false,
+    center: new google.maps.LatLng(51.07816,-114.135801),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+};
 window.markers = [];
 window.center = null;
-window.mapOptions = {};
 window.counter = 0;
 window.locations = ['Residence','Computer Science Building','Off Campus'];
 window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
@@ -40,7 +45,7 @@ function anonymousLoginDone(data, textStatus, jqxhr){
 function studentLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
-        // Login is required to retrieve a token so purchases can be made
+        // Login is required to retrieve a token so purchases can be made and notifications received
         localStorage.bridgeitUToken = data.access_token;
         localStorage.bridgeitUTokenExpires = data.expires_in;
         localStorage.bridgeitUUsername = $('#userName').val();
@@ -52,7 +57,7 @@ function studentLoginDone(data, textStatus, jqxhr){
 }
 
 function studentLoggedIn(){
-    $('#purchaseEvntFrm')[0].reset();
+    $('#purchaseTcktFrm')[0].reset();
     $('#purchasePanel').show('slow');
     $('#ticketsPanel').show('slow');
     $('#locationPanel').show();
@@ -92,7 +97,7 @@ function retrieveEventsDone(data, textStatus, jqxhr){
             if(!obj.type){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
-                evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseEvent(\'' + obj._id + '\');">' + obj.name + '</a>');
+                evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
             }
         });
     }else{
@@ -147,7 +152,7 @@ var locationSaveDone = function(location){
     };
 };
 
-function purchaseEvent(documentId){
+function purchaseTicket(documentId){
     // No token, prompt student to login
     if(!localStorage.bridgeitUToken){
         $('#loginModal').modal('show');
@@ -166,10 +171,10 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         $('#purchasePanel').addClass('panel-primary');
         $('#purchaseBttn').prop('disabled', false);
-        document.getElementById('purchaseQuantity').value = null;
-        document.getElementById('purchaseName').value = data.name;
-        document.getElementById('purchaseDetails').value = data.details;
-        $('#purchaseEvntFrm').off('submit').on('submit',(function( event ) {
+        document.getElementById('ticketQuantity').value = null;
+        document.getElementById('ticketName').value = data.name;
+        document.getElementById('ticketDetails').value = data.details;
+        $('#purchaseTcktFrm').off('submit').on('submit',(function( event ) {
             event.preventDefault();
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json post data from form's elements
@@ -178,8 +183,8 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
             if(validate(form)){
                 var postData = {};
                 postData['access_token'] = localStorage.bridgeitUToken;
-                postData['eventname'] = form.purchaseName.value;
-                postData['quantity'] = form.purchaseQuantity.value;
+                postData['eventname'] = form.ticketName.value;
+                postData['quantity'] = form.ticketQuantity.value;
                 // Also submit user record to be updated in purchaseFlow
                 var submittedUserRecord = {};
                 submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
@@ -187,20 +192,20 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
                 submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
                 submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
                 var ticketArray = [];
-                for(var i=0; i<form.purchaseQuantity.value; i++){
-                    ticketArray.push({name:form.purchaseName.value});
+                for(var i=0; i<form.ticketQuantity.value; i++){
+                    ticketArray.push({name:form.ticketName.value});
                 }
                 submittedUserRecord['tickets'] = submittedUserRecord['tickets'].concat(ticketArray);
                 postData['user_record'] = submittedUserRecord;
                 $.ajax({
-                    url : window.purchaseFlow,
+                    url : window.ticketFlow,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
                     data : JSON.stringify(postData)
                 })
-                .fail(purchaseFail)
-                .done(purchaseEventDone(ticketArray));
+                .fail(ticketFail)
+                .done(purchaseTicketDone(ticketArray));
             }
         }));
     }else{
@@ -208,7 +213,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
     }
 }
 
-function purchaseFail(jqxhr, textStatus, errorThrown){
+function ticketFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
         $('#alertDiv').prepend(
@@ -220,7 +225,7 @@ function purchaseFail(jqxhr, textStatus, errorThrown){
     }
 }
 
-var purchaseEventDone = function(ticketArray){
+var purchaseTicketDone = function(ticketArray){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 200){
             window.userRecord['tickets'] = window.userRecord['tickets'].concat(ticketArray);
@@ -229,7 +234,7 @@ var purchaseEventDone = function(ticketArray){
                 $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.</small></div>').hide().fadeIn('slow')
             );
             addNoticesInfoClass();
-            $('#purchaseEvntFrm')[0].reset();
+            $('#purchaseTcktFrm')[0].reset();
             $('#purchasePanel').removeClass('panel-primary');
             $('#purchaseBttn').prop('disabled', true);
         }else{
@@ -256,17 +261,17 @@ function cancelTicketPurchase(eventName){
     }
     postData['user_record'] = submittedUserRecord;
     $.ajax({
-        url : window.purchaseCancelFlow,
+        url : window.ticketFlow,
         type: 'POST',
         dataType : 'json',
         contentType: 'application/json; charset=utf-8',
         data : JSON.stringify(postData)
     })
-    .fail(purchaseFail)
-    .done(purchaseCancelDone);
+    .fail(ticketFail)
+    .done(ticketCancelDone);
 }
 
-function purchaseCancelDone(data, textStatus, jqxhr){
+function ticketCancelDone(data, textStatus, jqxhr){
     if(jqxhr.status == 200){
         for(var i=0; i<window.userRecord['tickets'].length; i++){
             if(window.userRecord['tickets'][i].name == data.eventname){
@@ -300,13 +305,6 @@ function displayTickets(){
 }
 
 function locationMapInit(){
-    window.mapOptions = {
-        zoom: 15,
-        maxZoom: 16,
-        draggable: false,
-        center: new google.maps.LatLng(51.07816,-114.135801),
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
     navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:5000});
 
