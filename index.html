@@ -87,7 +87,11 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a id="loginIcon" data-toggle="modal" href="#loginModal"><i class="glyphicon glyphicon-lock"></i> Login</a></li>
+            <li><span id="welcome" class="navbar-text"></span></li>
+            <li>
+                <a id="loginNavbar" data-toggle="modal" href="#loginModal"><i class="glyphicon glyphicon-lock"></i> Login</a>
+                <a id="logoutNavbar"><i class="glyphicon glyphicon-lock"></i> Logout</a>
+            </li>
           </ul>
         </div>
     </div><!-- /container -->
@@ -256,6 +260,7 @@
 
         $('#purchaseBttn').prop('disabled', true);
         loginSubmit();
+        logoutClick();
         // Anonymous token for viewing events
         if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
             retrieveEvents();
@@ -265,6 +270,7 @@
         }
         // No Student token
         if(!localStorage.bridgeitUToken){
+            showLoginNavbar();
             $('#purchasePanel').hide();
             $('#ticketsPanel').hide();
             $('#locationPanel').hide();
@@ -274,7 +280,7 @@
             registerPushUsernameGroup(localStorage.bridgeitUUsername);
         // Invalid Student token - log out
         }else{
-            studentLogout();
+            studentLogout('expired');
         }
     });
 

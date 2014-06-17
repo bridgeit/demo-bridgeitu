@@ -64,19 +64,22 @@ function adminLoggedIn(){
     $('#crtEvntFrm')[0].reset();
 }
 
-function adminLogout(){
+function adminLogout(expired){
     sessionStorage.removeItem('bridgeitUToken');
     sessionStorage.removeItem('bridgeitUTokenExpires');
     sessionStorage.removeItem('bridgeitUUsername');
     toggleCreateNotifyEvent();
-    $('#loginIcon').html('Login');
+    showLoginNavbar();
+    $('#welcome').html('');
     // Force login by showing modal login and initially hide close and cancel buttons
     $('#loginModal').modal('show');
     $('#loginCloseBttn').hide();
     $('#loginCancelBttn').hide();
-    $('#alertLoginDiv').html(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
-    );
+    if(expired){
+        $('#alertLoginDiv').html(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
+        );
+    }
 }
 
 function retrieveEventsAdmin(){
@@ -85,14 +88,14 @@ function retrieveEventsAdmin(){
         .fail(retrieveEventsFail)
         .done(adminRetrieveEventsDone);
     }else{
-        adminLogout();
+        adminLogout('expired');
     }
 }
 
 function adminRetrieveEventsDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         var evntLstDiv = $('#evntLst');
-        evntLstDiv.html("");
+        evntLstDiv.html('');
         $.each(data, function(i, obj) {
             // Using Document Service to store users, this will skip the user documents
             if(!obj.type){
@@ -129,7 +132,7 @@ function createEventSubmit(){
                 .done(createEventDone(form.crtname.value));
             }
         }else{
-            adminLogout();
+            adminLogout('expired');
         }
     });
 }
@@ -156,7 +159,7 @@ function editEvent(documentId){
         .fail(requestFail)
         .done(editGetEventDone);
     }else{
-        adminLogout();
+        adminLogout('expired');
     }
 }
 
@@ -219,7 +222,7 @@ function deleteEvent(documentId){
             .done(deleteDone(documentId));
         }
     }else{
-        adminLogout();
+        adminLogout('expired');
     }
 }
 
@@ -283,7 +286,7 @@ function notifyEvent(documentId){
                 .done(notifyCRUDEventDone);
             }
         }else{
-            adminLogout();
+            adminLogout('expired');
         }
     }));
 }

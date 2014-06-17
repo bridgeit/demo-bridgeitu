@@ -36,6 +36,17 @@ function loginSubmit(isAdmin){
     });
 }
 
+function logoutClick(isAdmin){
+    $('#logoutNavbar').click(function( event ) {
+        event.preventDefault();
+        if(isAdmin){
+            adminLogout();
+        }else{
+            studentLogout();
+        }
+    });
+}
+
 function loginFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
@@ -90,7 +101,7 @@ function retrieveEventsFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 404){
         // 404 means the list is empty
         var evntLstDiv = $('#evntLst');
-        evntLstDiv.html("");
+        evntLstDiv.html('');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -128,7 +139,8 @@ function validate(form){
 }
 
 function uiLoggedIn(username){
-    $('#loginIcon').html('Welcome: ' + username);
+    $('#welcome').html('Welcome: ' + username);
+    showLogoutNavbar();
     resetLoginForm();
     $('#loginModal').modal('hide');
     // clear previous user notices
@@ -149,6 +161,16 @@ function resetFormCSS(form){
             $(form[i]).parent('div').removeClass('has-error');
         }
     }
+}
+
+function showLoginNavbar(){
+    $('#loginNavbar').show();
+    $('#logoutNavbar').hide();
+}
+
+function showLogoutNavbar(){
+    $('#loginNavbar').hide();
+    $('#logoutNavbar').show();
 }
 
 function addNoticesInfoClass(){

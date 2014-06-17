@@ -60,18 +60,21 @@ function studentLoggedIn(){
     initializeStudent();
 }
 
-function studentLogout(){
+function studentLogout(expired){
     localStorage.removeItem('bridgeitUToken');
     localStorage.removeItem('bridgeitUTokenExpires');
     localStorage.removeItem('bridgeitUUsername');
     $('#purchasePanel').hide();
     $('#ticketsPanel').hide();
     $('#locationPanel').hide();
-    $('#loginIcon').html('Login');
-    $('#loginModal').modal('show');
-    $('#alertLoginDiv').html(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
-    );
+    showLoginNavbar();
+    $('#welcome').html('');
+    if(expired){
+        $('#loginModal').modal('show');
+        $('#alertLoginDiv').html(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
+        );
+    }
 }
 
 function retrieveEvents(){
@@ -83,7 +86,7 @@ function retrieveEvents(){
 function retrieveEventsDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
         var evntLstDiv = $('#evntLst');
-        evntLstDiv.html("");
+        evntLstDiv.html('');
         $.each(data, function(i, obj) {
             // Using Document Service to store users, this will skip the user documents
             if(!obj.type){
@@ -155,7 +158,7 @@ function purchaseEvent(documentId){
         .fail(requestFail)
         .done(purchaseGetEventDone);
     }else{
-        studentLogout();
+        studentLogout('expired');
     }
 }
 
@@ -329,7 +332,7 @@ function locationMapInit(){
             .fail(requestFail)
             .done(locationSaveDone(window.currentLocation));
         }else{
-            studentLogout();
+            studentLogout('expired');
         }
     });
     // TODO:  This call appears to prevent future calls to navigator.geolocation.getCurrentPosition from working in Chrome
