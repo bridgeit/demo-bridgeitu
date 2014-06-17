@@ -12,14 +12,14 @@ function loginSubmit(isAdmin){
         var form = this;
         if(validate(form)){
             // Avoid getting a token from anonymous credentials
-            if(!isAdmin && (form[0].value == 'anonymous' && form[1].value == 'anonymous')){
+            if(!isAdmin && (form.userName.value == 'anonymous' && form.passWord.value == 'anonymous')){
                 $('#alertLoginDiv').html(
                     $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
                 );
                 return;
             }
-            var postData = {'username' : form[0].value,
-                            'password' : form[1].value};
+            var postData = {'username' : form.userName.value,
+                            'password' : form.passWord.value};
             $.ajax({
                 url : window.authService,
                 type: 'POST',
