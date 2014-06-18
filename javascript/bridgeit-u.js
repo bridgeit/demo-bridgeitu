@@ -13,9 +13,7 @@ function loginSubmit(isAdmin){
         if(validate(form)){
             // Avoid getting a token from anonymous credentials
             if(!isAdmin && (form.userName.value == 'anonymous' && form.passWord.value == 'anonymous')){
-                $('#alertLoginDiv').html(
-                    $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
-                );
+                loginErrorAlert('Invalid Credentials');
                 return;
             }
             var postData = {'username' : form.userName.value,
@@ -50,9 +48,7 @@ function logoutClick(isAdmin){
 function loginFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
-        $('#alertLoginDiv').html(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Credentials</div>').hide().fadeIn('fast')
-        );
+        loginErrorAlert('Invalid Credentials');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -91,10 +87,7 @@ function displayNotification(item)  {
         return;
     }
     notifications[item.timestamp] = item;
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + item.eventName + '</strong> '+ item.pushSubject +'</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
+    infoAlert('<strong>' + item.eventName + '</strong> '+ item.pushSubject);
 }
 
 function retrieveEventsFail(jqxhr, textStatus, errorThrown){
@@ -108,17 +101,11 @@ function retrieveEventsFail(jqxhr, textStatus, errorThrown){
 }
 
 function requestFail(jqxhr, textStatus, errorThrown){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
+    errorAlert('<strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
 }
 
 function serviceRequestUnexpectedStatusAlert(source, status){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
+    warningAlert('<strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.');
 }
 
 function validate(form){
@@ -183,4 +170,38 @@ function removeNoticesInfoClass(){
 
 function tokenValid(token, expires, type){
     return token && (parseInt(expires) > new Date().getTime());
+}
+
+function infoAlert(message){
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+    );
+    addNoticesInfoClass();
+}
+
+function warningAlert(message){
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+    );
+    addNoticesInfoClass();
+}
+
+function successAlert(message){
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+    );
+    addNoticesInfoClass();
+}
+
+function errorAlert(message){
+    $('#alertDiv').prepend(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+    );
+    addNoticesInfoClass();
+}
+
+function loginErrorAlert(message){
+    $('#alertLoginDiv').html(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
+    );
 }

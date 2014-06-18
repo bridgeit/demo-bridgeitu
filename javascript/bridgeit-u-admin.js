@@ -47,9 +47,7 @@ var adminPermissionDone = function(token, expires_in){
 function adminPermissionFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
-        $('#alertLoginDiv').html(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Invalid Login - you are not an administrator</div>').hide().fadeIn('fast')
-        );
+        loginErrorAlert('Invalid Login - you are not an administrator');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -76,9 +74,7 @@ function adminLogout(expired){
     $('#loginCloseBttn').hide();
     $('#loginCancelBttn').hide();
     if(expired){
-        $('#alertLoginDiv').html(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
-        );
+        loginErrorAlert('Session Expired');
     }
 }
 
@@ -140,10 +136,7 @@ function createEventSubmit(){
 var createEventDone = function(name){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 201){
-            $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + name + '</strong> Event Created</small></div>').hide().fadeIn('slow')
-            );
-            addNoticesInfoClass();
+            successAlert('<strong>' + name + '</strong> Event Created');
             $('#crtEvntFrm')[0].reset();
             retrieveEventsAdmin();
             notifyCRUDEvent();
@@ -196,10 +189,7 @@ function editGetEventDone(data, textStatus, jqxhr){
 var editEventDone = function(documentId){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 201){
-            $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Edited</small></div>').hide().fadeIn('slow')
-            );
-            addNoticesInfoClass();
+            successAlert('<strong>' + window.events[documentId] + '</strong> Event Edited');
             $('#editModal').modal('hide');
             retrieveEventsAdmin();
             notifyCRUDEvent();
@@ -229,10 +219,7 @@ function deleteEvent(documentId){
 var deleteDone = function(documentId){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 204){
-            $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + window.events[documentId] + '</strong> Event Deleted</small></div>').hide().fadeIn('slow')
-            );
-            addNoticesInfoClass();
+            successAlert('<strong>' + window.events[documentId] + '</strong> Event Deleted');
             retrieveEventsAdmin();
             notifyCRUDEvent();
         }else{
@@ -313,10 +300,7 @@ function storeNotification(eventName, pushSubject, lifeseconds)  {
 function notifyCRUDEventFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
-        $('#alertDiv').prepend(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to send event CRUD notifications: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
-        );
-        addNoticesInfoClass();
+        errorAlert('<strong>Unauthorized</strong> to send event CRUD notifications: status <strong>' + jqxhr.status + '</strong>');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -324,10 +308,7 @@ function notifyCRUDEventFail(jqxhr, textStatus, errorThrown){
 
 function notifyCRUDEventDone(data, textStatus, jqxhr){
     if(jqxhr.status == 200){
-        $('#alertDiv').prepend(
-            $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.pushSubject + '</strong> push group notified.</small></div>').hide().fadeIn('slow')
-        );
-        addNoticesInfoClass();
+        infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
         toggleCreateNotifyEvent();
     }else{
         serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);

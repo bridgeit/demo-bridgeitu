@@ -76,9 +76,7 @@ function studentLogout(expired){
     $('#welcome').html('');
     if(expired){
         $('#loginModal').modal('show');
-        $('#alertLoginDiv').html(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Session Expired</div>').hide().fadeIn('fast')
-        );
+        loginErrorAlert('Session Expired');
     }
 }
 
@@ -146,11 +144,8 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
 var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 201){
+            successAlert('<strong>' + location + '</strong> Location Saved');
             window.userRecord['location'] = location;
-            $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + location + '</strong> Location Saved</small></div>').hide().fadeIn('slow')
-            );
-            addNoticesInfoClass();
             $('#crrntLctn').html(location);
         }else{
             serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
@@ -222,10 +217,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
 function ticketFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 401){
         // 401 unauthorized
-        $('#alertDiv').prepend(
-            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong></small></div>').hide().fadeIn('slow')
-        );
-        addNoticesInfoClass();
+        errorAlert('<strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong>');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
@@ -234,12 +226,9 @@ function ticketFail(jqxhr, textStatus, errorThrown){
 var purchaseTicketDone = function(ticketArray){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status == 200){
+            successAlert('<strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.');
             window.userRecord['tickets'] = window.userRecord['tickets'].concat(ticketArray);
             displayTickets();
-            $('#alertDiv').prepend(
-                $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.</small></div>').hide().fadeIn('slow')
-            );
-            addNoticesInfoClass();
             $('#purchaseTcktFrm')[0].reset();
             $('#purchasePanel').removeClass('panel-primary');
             $('#purchaseBttn').prop('disabled', true);
@@ -279,16 +268,13 @@ function cancelTicketPurchase(eventName){
 
 function ticketCancelDone(data, textStatus, jqxhr){
     if(jqxhr.status == 200){
+        successAlert('<strong>' + data.eventname + '</strong> ticket purchase cancelled.');
         for(var i=0; i<window.userRecord['tickets'].length; i++){
             if(window.userRecord['tickets'][i].name == data.eventname){
                 window.userRecord['tickets'].splice(i,1);
                 break;
             }
         }
-        $('#alertDiv').prepend(
-            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>' + data.eventname + '</strong> ticket purchase cancelled.</small></div>').hide().fadeIn('slow')
-        );
-        addNoticesInfoClass();
         displayTickets();
     }else{
         serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
@@ -353,10 +339,7 @@ function geolocationSetPosition(pos){
 }
 
 function geolocationError(){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small><strong>Geolocation</strong> problem setting map location.</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
+    errorAlert('<strong>Geolocation</strong> problem setting map location.');
 }
 
 function placeMapMarker(){
