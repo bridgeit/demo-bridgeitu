@@ -91,7 +91,7 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html('');
         $.each(data, function(i, obj) {
-            // Using Document Service to store users, this will skip the user documents
+            // Using Document Service to store users and notifications, this will skip them
             if(!obj.type){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
@@ -188,6 +188,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
                 postData['quantity'] = form.ticketQuantity.value;
                 // Also submit user record to be updated in purchaseFlow
                 var submittedUserRecord = {};
+                // Ternary operator necessary in case user record does not exist in doc service
                 submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
                 submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
                 submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
@@ -247,6 +248,7 @@ function cancelTicketPurchase(eventName){
     submittedUserRecord['_id'] = window.userRecord['_id'];
     submittedUserRecord['type'] = window.userRecord['type'];
     submittedUserRecord['location'] = window.userRecord['location'];
+    // slice gives us a new array
     submittedUserRecord['tickets'] = window.userRecord['tickets'].slice(0);
     for(var i=0; i<submittedUserRecord['tickets'].length; i++){
         if(submittedUserRecord['tickets'][i].name == eventName){
@@ -308,6 +310,7 @@ function locationMapInit(){
 
         if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             var postData = {};
+            // Ternary operator necessary in case user record does not exist in doc service
             postData['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
             postData['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
             postData['location'] = window.currentLocation;

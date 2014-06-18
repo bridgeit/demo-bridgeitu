@@ -316,8 +316,7 @@ function notifyCRUDEventDone(data, textStatus, jqxhr){
 }
 
 function notifyEventShow(){
-    var notificationForm = document.getElementById('evntNtfctnFrm');
-    notificationForm.reset();
+    document.getElementById('evntNtfctnFrm').reset();
     $('#crtEvntDiv').hide();
     $('#evntNtfctnDiv').show('slow');
 }

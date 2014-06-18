@@ -93,8 +93,7 @@ function displayNotification(item)  {
 function retrieveEventsFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 404){
         // 404 means the list is empty
-        var evntLstDiv = $('#evntLst');
-        evntLstDiv.html('');
+        $('#evntLst').html('');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
