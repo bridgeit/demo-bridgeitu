@@ -120,6 +120,8 @@ function initializeStudentDone(data, textStatus, jqxhr){
         if(data.location){
             lctnLabel.html(data.location);
             window.currentLocation = data.location;
+        }else{
+            window.currentLocation = 'You are here.';
         }
         locationMapInit();
     }else{
@@ -131,7 +133,11 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status == 404){
         // User Record doesn't exist.
         window.userRecord = {};
+        window.userRecord['tickets'] = [];
+        $('#evntTcktLst').html('');
         $('#crrntLctn').html('');
+        window.currentLocation = 'You are here.';
+        locationMapInit();
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
