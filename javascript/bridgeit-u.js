@@ -75,7 +75,7 @@ function getNotifications(callback)  {
     };
     $.getJSON(window.documentService +
             '?query=' + JSON.stringify(query) +
-            '&access_token=' + localStorage.bridgeitUToken)
+            '&access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
     .done(callback);
 }
 

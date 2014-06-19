@@ -1,14 +1,17 @@
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
-window.eventCRUDNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCRUDnotification';
-window.eventCustomNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/eventCustomNotification';
-window.flowLookupObject = {1 : window.eventCRUDNotificationFlow,
-                           2 : window.eventCRUDNotificationFlow,
-                           3 : window.eventCRUDNotificationFlow,
-                           4 : window.eventCRUDNotificationFlow,
-                           5 : window.eventCRUDNotificationFlow,
-                           6 : window.eventCRUDNotificationFlow,
-                           7 : window.eventCRUDNotificationFlow,
-                           8 : window.eventCustomNotificationFlow};
+window.anonymousNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonymousNotification';
+window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
+window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/noTicketOnCampusNotification';
+window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
+window.residenceNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/residenceNotification';
+window.onCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/onCampusNotification';
+window.flowLookupObject = {1 : window.anonymousNotificationFlow,
+                           2 : window.studentNotificationFlow,
+                           3 : window.noTicketOnCampusNotificationFlow,
+                           4 : window.ticketHolderNotificationFlow,
+                           5 : window.residenceNotificationFlow,
+                           6 : window.onCampusNotificationFlow,
+                           7 : window.studentNotificationFlow};
 
 function adminLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
@@ -233,7 +236,7 @@ function notifyCRUDEvent(){
     postData['access_token'] = sessionStorage.bridgeitUToken;
     postData['pushSubject'] = 'Event List Modified';
     $.ajax({
-        url : window.eventCRUDNotificationFlow,
+        url : window.anonymousNotificationFlow,
         type: 'POST',
         dataType : 'json',
         contentType: 'application/json; charset=utf-8',
