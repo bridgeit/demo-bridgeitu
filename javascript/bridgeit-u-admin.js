@@ -5,13 +5,16 @@ window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.
 window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
 window.residenceNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/residenceNotification';
 window.onCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/onCampusNotification';
+window.offCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/offCampusNotification';
+window.customNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/customNotification';
 window.flowLookupObject = {1 : window.anonymousNotificationFlow,
                            2 : window.studentNotificationFlow,
                            3 : window.noTicketOnCampusNotificationFlow,
                            4 : window.ticketHolderNotificationFlow,
                            5 : window.residenceNotificationFlow,
                            6 : window.onCampusNotificationFlow,
-                           7 : window.studentNotificationFlow};
+                           7 : window.offCampusNotificationFlow,
+                           8 : window.customNotificationFlow};
 
 function adminLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status == 200){
@@ -261,12 +264,20 @@ function notifyEvent(documentId){
             storeNotification(eventName, pushSubject, 20);
 
             if(validate(form)){
+                var flow = window.flowLookupObject[form.ntfctnSlct.value];
                 var postData = {};
                 postData['access_token'] = sessionStorage.bridgeitUToken;
                 postData['eventName'] = eventName;
                 postData['pushSubject'] = pushSubject;
+                if(flow == window.residenceNotificationFlow){
+                    postData['location'] = 'Residence';
+                } else if(flow == window.onCampusNotificationFlow || flow == window.noTicketOnCampusNotificationFlow){
+                    postData['location'] = 'On Campus';
+                } else if(flow == window.offCampusNotificationFlow){
+                    postData['location'] = 'Off Campus';
+                }
                 $.ajax({
-                    url : window.flowLookupObject[form.ntfctnSlct.value],
+                    url : flow,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
