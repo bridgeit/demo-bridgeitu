@@ -3,17 +3,16 @@ window.anonymousNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anony
 window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
 window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/noTicketOnCampusNotification';
 window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
-window.residenceNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/residenceNotification';
+window.locationNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/locationNotification';
 window.onCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/onCampusNotification';
-window.offCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/offCampusNotification';
 window.customNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/customNotification';
 window.flowLookupObject = {1 : window.anonymousNotificationFlow,
                            2 : window.studentNotificationFlow,
                            3 : window.noTicketOnCampusNotificationFlow,
                            4 : window.ticketHolderNotificationFlow,
-                           5 : window.residenceNotificationFlow,
+                           5 : 'locationResidence',
                            6 : window.onCampusNotificationFlow,
-                           7 : window.offCampusNotificationFlow,
+                           7 : 'locationOffCampus',
                            8 : window.customNotificationFlow};
 
 function adminLoginDone(data, textStatus, jqxhr){
@@ -269,12 +268,13 @@ function notifyEvent(documentId){
                 postData['access_token'] = sessionStorage.bridgeitUToken;
                 postData['eventName'] = eventName;
                 postData['pushSubject'] = pushSubject;
-                if(flow == window.residenceNotificationFlow){
+                // Single flow used for locations - post location property as parameter for locationNotificationFlow
+                if(flow == 'locationResidence'){
                     postData['location'] = 'Residence';
-                } else if(flow == window.onCampusNotificationFlow || flow == window.noTicketOnCampusNotificationFlow){
-                    postData['location'] = 'On Campus';
-                } else if(flow == window.offCampusNotificationFlow){
+                    flow = window.locationNotificationFlow;
+                } else if(flow == 'locationOffCampus'){
                     postData['location'] = 'Off Campus';
+                    flow = window.locationNotificationFlow;
                 }
                 $.ajax({
                     url : flow,
