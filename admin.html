@@ -118,6 +118,7 @@
             <div class="row">
                 <!-- center left-->
                 <div class="col-md-6">
+                    <!-- Event List -->
                     <div class="panel panel-default">
                         <div class="panel-heading"><h4>Events</h4></div>
                         <div class="panel-body">
@@ -128,6 +129,96 @@
                         </div><!--/panel-body-->
                     </div><!--/panel-->
                 </div>
+                <div class="col-md-6">
+                    <!-- Notification -->
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="panel-title">
+                            <i class="glyphicon glyphicon-bullhorn pull-right"></i>
+                            <h4>Send Notification</h4>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <form id="evntNtfctnFrm" class="form-horizontal" role="form">
+                                <div class="panel panel-warning panelReducedMargin">
+                                    <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">Message</h5></div>
+                                    <div class="panel-body panelBodyReducedPadding">
+                                        <div class="form-group formGroupReducedMargin">
+                                            <label class="col-sm-2 control-label">Message</label>
+                                            <div class="col-sm-10">
+                                                <input name="ntfctnText"
+                                                       type="text"
+                                                       class="form-control input-sm"
+                                                       placeholder="Enter Notification Text">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!--panel-->
+                                <div class="form-group formGroupReducedMargin">
+                                    <label class="col-sm-0 control-label"></label>
+                                    <div class="col-sm-5">
+                                        <select name="andOr" class="form-control input-sm" onchange="changeAndOrLabels(this);">
+                                            <option value="andFilter">"And" Filter ...</option>
+                                            <option value="orFilter">"Or" Filter ...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="panel panel-info panelReducedMargin">
+                                    <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">1 - Role</h5></div>
+                                    <div class="panel-body panelBodyReducedPadding">
+                                        <div class="form-group formGroupReducedMargin">
+                                            <label class="col-sm-2 control-label">Role</label>
+                                            <div class="col-sm-10">
+                                                <select name="targetRole" class="form-control input-sm">
+                                                    <option value="!role">All</option>
+                                                    <option value="u.student">Student</option>
+                                                    <option value="!u.student">Not - Student</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!--panel-->
+                                <div class="panel panel-info panelReducedMargin">
+                                    <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">2 - <span id="holdsLabel">And</span>  Holds</h5></div>
+                                    <div class="panel-body panelBodyReducedPadding">
+                                        <div class="form-group formGroupReducedMargin">
+                                            <label class="col-sm-2 control-label">Tickets</label>
+                                            <div class="col-sm-10">
+                                                <select id="targetEvent" name="targetEvent" class="form-control input-sm">
+                                                    <option value="!event">None</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!--panel-->
+                                <div class="panel panel-info panelReducedMargin">
+                                    <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">3 - <span id="locationLabel">And</span>  Location</h5></div>
+                                    <div class="panel-body panelBodyReducedPadding">
+                                        <div class="form-group formGroupReducedMargin">
+                                            <label class="col-sm-2 control-label">Location</label>
+                                            <div class="col-sm-10">
+                                                <select name="targetLctn" class="form-control input-sm">
+                                                    <option value="!location">Select</option>
+                                                    <option value="Residence">Residence</option>
+                                                    <option value="!Residence">Not - Residence</option>
+                                                    <option value="Computer Science Building">Computer Science Building</option>
+                                                    <option value="!Computer Science Building">Not - Computer Science Building</option>
+                                                    <option value="Off Campus">Off Campus</option>
+                                                    <option value="!Off Campus">On Campus</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!--panel-->
+                                <button type="submit" class="btn btn-primary">
+                                  Send
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div><!--/col-span-6-->
+            </div>
+            <div class="row">
                 <div id='crtEvntDiv' class="col-md-6">
                     <div class="panel panel-default">
                         <!-- Create Event -->
@@ -178,7 +269,7 @@
                             </div>
                         </div>
                         <div class="panel-body">
-                            <form id="evntNtfctnFrm" class="form form-vertical">
+                            <form id="oldEvntNtfctnFrm" class="form form-vertical">
                                 <div class="control-group">
                                     <label id="ntfctnTextLabel"></label>
                                     <div class="controls">
@@ -313,6 +404,7 @@
 
         $('#evntNtfctnDiv').hide();
         createEventSubmit();
+        notifySubmit();
         loginSubmit('admin');
         logoutClick('admin');
         // No Admin token

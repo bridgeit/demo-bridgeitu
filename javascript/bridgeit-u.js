@@ -12,7 +12,7 @@ function loginSubmit(isAdmin){
         var form = this;
         if(validate(form)){
             // Avoid getting a token from anonymous credentials
-            if(!isAdmin && (form.userName.value == 'anonymous' && form.passWord.value == 'anonymous')){
+            if(!isAdmin && (form.userName.value === 'anonymous' && form.passWord.value === 'anonymous')){
                 loginErrorAlert('Invalid Credentials');
                 return;
             }
@@ -46,7 +46,7 @@ function logoutClick(isAdmin){
 }
 
 function loginFail(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status == 401){
+    if(jqxhr.status === 401){
         // 401 unauthorized
         loginErrorAlert('Invalid Credentials');
     }else{
@@ -91,7 +91,7 @@ function displayNotification(item)  {
 }
 
 function retrieveEventsFail(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status == 404){
+    if(jqxhr.status === 404){
         // 404 means the list is empty
         $('#evntLst').html('');
     }else{
@@ -113,8 +113,8 @@ function validate(form){
      */
     var formValid = true;
     for(var i=0; i<form.length; i++){
-        if( (form[i].tagName == 'INPUT' || form[i].tagName == 'TEXTAREA')
-                && form[i].value == ''){
+        if( (form[i].tagName === 'INPUT' || form[i].tagName === 'TEXTAREA')
+                && form[i].value === ''){
             $(form[i]).parent('div').addClass('has-error');
             formValid = false;
         }else{
@@ -143,7 +143,7 @@ function resetLoginForm(){
 
 function resetFormCSS(form){
     for(var i=0; i<form.length; i++){
-        if(form[i].tagName == 'INPUT' || form[i].tagName == 'TEXTAREA'){
+        if(form[i].tagName === 'INPUT' || form[i].tagName === 'TEXTAREA'){
             $(form[i]).parent('div').removeClass('has-error');
         }
     }

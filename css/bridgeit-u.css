@@ -6,3 +6,24 @@ a.list-group-item:focus{
 .notice {
     background-color: red;
 }
+
+.noPanelHeadingMargin {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.panelHeadingReducedPadding {
+    padding: 5px 10px;
+}
+
+.panelBodyReducedPadding {
+    padding: 5px;
+}
+
+.panelReducedMargin {
+    margin-bottom: 10px;
+}
+
+.formGroupReducedMargin {
+    margin-bottom: 5px;
+}

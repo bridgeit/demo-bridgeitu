@@ -32,7 +32,7 @@ function anonymousLogin(){
 }
 
 function anonymousLoginDone(data, textStatus, jqxhr){
-    if( jqxhr.status == 200){
+    if( jqxhr.status === 200){
         localStorage.bridgeitUAnonymousToken = data.access_token;
         localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
         retrieveEvents();
@@ -43,7 +43,7 @@ function anonymousLoginDone(data, textStatus, jqxhr){
 }
 
 function studentLoginDone(data, textStatus, jqxhr){
-    if( jqxhr.status == 200){
+    if( jqxhr.status === 200){
         // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
         // Login is required to retrieve a token so purchases can be made and notifications received
         localStorage.bridgeitUToken = data.access_token;
@@ -87,7 +87,7 @@ function retrieveEvents(){
 }
 
 function retrieveEventsDone(data, textStatus, jqxhr){
-    if( jqxhr.status == 200){
+    if( jqxhr.status === 200){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html('');
         $.each(data, function(i, obj) {
@@ -110,7 +110,7 @@ function initializeStudent(){
 }
 
 function initializeStudentDone(data, textStatus, jqxhr){
-    if( jqxhr.status == 200){
+    if( jqxhr.status === 200){
         window.userRecord = data;
         displayTickets();
         var lctnLabel = $('#crrntLctn');
@@ -128,7 +128,7 @@ function initializeStudentDone(data, textStatus, jqxhr){
 }
 
 function initializeStudentFail(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status == 404){
+    if(jqxhr.status === 404){
         // User Record doesn't exist.
         window.userRecord = {};
         window.userRecord['tickets'] = [];
@@ -143,7 +143,7 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
 
 var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
-        if(jqxhr.status == 201){
+        if(jqxhr.status === 201){
             successAlert('<strong>' + location + '</strong> Location Saved');
             window.userRecord['location'] = location;
             $('#crrntLctn').html(location);
@@ -169,7 +169,7 @@ function purchaseTicket(documentId){
 }
 
 function purchaseGetEventDone(data, textStatus, jqxhr){
-    if( jqxhr.status == 200){
+    if( jqxhr.status === 200){
         $('#purchasePanel').addClass('panel-primary');
         $('#purchaseBttn').prop('disabled', false);
         document.getElementById('ticketQuantity').value = null;
@@ -216,7 +216,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
 }
 
 function ticketFail(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status == 401){
+    if(jqxhr.status === 401){
         // 401 unauthorized
         errorAlert('<strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong>');
     }else{
@@ -226,7 +226,7 @@ function ticketFail(jqxhr, textStatus, errorThrown){
 
 var purchaseTicketDone = function(ticketArray){
     return function(data, textStatus, jqxhr){
-        if(jqxhr.status == 200){
+        if(jqxhr.status === 200){
             successAlert('<strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.');
             window.userRecord['tickets'] = window.userRecord['tickets'].concat(ticketArray);
             displayTickets();
@@ -251,7 +251,7 @@ function cancelTicketPurchase(eventName){
     // slice gives us a new array
     submittedUserRecord['tickets'] = window.userRecord['tickets'].slice(0);
     for(var i=0; i<submittedUserRecord['tickets'].length; i++){
-        if(submittedUserRecord['tickets'][i].name == eventName){
+        if(submittedUserRecord['tickets'][i].name === eventName){
             submittedUserRecord['tickets'].splice(i,1);
             break;
         }
@@ -269,10 +269,10 @@ function cancelTicketPurchase(eventName){
 }
 
 function ticketCancelDone(data, textStatus, jqxhr){
-    if(jqxhr.status == 200){
+    if(jqxhr.status === 200){
         successAlert('<strong>' + data.eventname + '</strong> ticket purchase cancelled.');
         for(var i=0; i<window.userRecord['tickets'].length; i++){
-            if(window.userRecord['tickets'][i].name == data.eventname){
+            if(window.userRecord['tickets'][i].name === data.eventname){
                 window.userRecord['tickets'].splice(i,1);
                 break;
             }
@@ -289,7 +289,7 @@ function displayTickets(){
     for (var key in window.events) {
        if (window.events.hasOwnProperty(key) ){
            for (var i=0; i<window.userRecord.tickets.length; i++){
-               if(window.userRecord.tickets[i].name == window.events[key]){
+               if(window.userRecord.tickets[i].name === window.events[key]){
                    evntTcktLst.append('<div class="list-group-item">' + window.userRecord.tickets[i].name + '<a title="Cancel Ticket Purchase" onclick="cancelTicketPurchase(\'' + window.userRecord.tickets[i].name + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a></div>');
                }
            }
