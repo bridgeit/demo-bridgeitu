@@ -284,13 +284,13 @@ function ticketCancelDone(data, textStatus, jqxhr){
 }
 
 function displayTickets(){
-    var evntTcktLst = $('#evntTcktLst');
-    evntTcktLst.html('');
+    var $evntTcktLst = $('#evntTcktLst');
+    $evntTcktLst.html('');
     for (var key in window.events) {
        if (window.events.hasOwnProperty(key) ){
            for (var i=0; i<window.userRecord.tickets.length; i++){
                if(window.userRecord.tickets[i].name === window.events[key]){
-                   evntTcktLst.append('<div class="list-group-item">' + window.userRecord.tickets[i].name + '<a title="Cancel Ticket Purchase" onclick="cancelTicketPurchase(\'' + window.userRecord.tickets[i].name + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a></div>');
+                   $evntTcktLst.append('<div class="list-group-item">' + window.userRecord.tickets[i].name + '<a title="Cancel Ticket Purchase" onclick="cancelTicketPurchase(\'' + window.userRecord.tickets[i].name + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a></div>');
                }
            }
 

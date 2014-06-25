@@ -95,17 +95,18 @@ function retrieveEventsAdmin(){
 
 function adminRetrieveEventsDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
-        var evntLstDiv = $('#evntLst');
-        evntLstDiv.html('');
-        $('#targetEvent').find('option:gt(0)').remove();
+        var $evntLstDiv = $('#evntLst');
+        $evntLstDiv.html('');
+        var $targetEvent = $('#targetEvent');
+        $targetEvent.find('option:gt(0)').remove();
         $.each(data, function(i, obj) {
             // Using Document Service to store users, this will skip the user documents
             if(!obj.type){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
-                evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
-                $('<option>').val(obj.name).text(obj.name).appendTo('#targetEvent');
-                $('<option>').val('!' + obj.name).text('Not - ' + obj.name).appendTo('#targetEvent');
+                $evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
+                $('<option>').val(obj.name).text(obj.name).appendTo($targetEvent);
+                $('<option>').val('!' + obj.name).text('Not - ' + obj.name).appendTo($targetEvent);
             }
         });
     }else{
