@@ -22,6 +22,7 @@ function initIndexPage() {
             serviceBase:"http://dev.bridgeit.io"});
 
     $('#purchaseBttn').prop('disabled', true);
+    $('#purchaseTcktFrm').submit(purchaseTicketSubmit);
     $('#loginModalForm').submit(loginSubmit());
     $('#logoutNavbar').click(logoutClick());
     // Anonymous token for viewing events
@@ -206,7 +207,6 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
         document.getElementById('ticketQuantity').value = null;
         document.getElementById('ticketName').value = data.name;
         document.getElementById('ticketDetails').value = data.details;
-        $('#purchaseTcktFrm').off('submit').on('submit',(purchaseTicketSubmit));
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
     }
