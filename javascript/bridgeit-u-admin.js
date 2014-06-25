@@ -15,6 +15,33 @@ window.flowLookupObject = {1 : window.anonymousNotificationFlow,
                            7 : 'locationOffCampus',
                            8 : window.customNotificationFlow};
 
+function initAdminPage() {
+    bridgeit.useServices({
+            realm:"bridgeit.u",
+            serviceBase:"http://dev.bridgeit.io"});
+
+    $('#evntNtfctnDiv').hide();
+    $('#crtEvntFrm').submit(createEventSubmit);
+    $('#evntNtfctnFrm').submit(notifySubmit);
+    $('#loginModalForm').submit(loginSubmit('admin'));
+    $('#logoutNavbar').click(logoutClick('admin'));
+    // No Admin token
+    if(!sessionStorage.bridgeitUToken){
+        showLoginNavbar();
+        // Force login by showing modal login and initially hide close and cancel buttons
+        $('#loginModal').modal('show');
+        $('#loginCloseBttn').hide();
+        $('#loginCancelBttn').hide();
+    // Valid Admin token - logged in
+    } else if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        adminLoggedIn();
+        registerPushUsernameGroup(sessionStorage.bridgeitUUsername);
+    // Invalid Admin token - log out
+    }else{
+        adminLogout('expired');
+    }
+}
+
 function adminLoginDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
         // Check that user has admin permissions
@@ -114,32 +141,30 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
     }
 }
 
-function createEventSubmit(){
-    $('#crtEvntFrm').submit(function( event ) {
-        event.preventDefault();
-        if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
-            /* form element used to generically validate form elements (could also serialize the form if necessary)
-            *  Also using form to create json Post data from form's elements
-            */
-            var form = this;
-            if(validate(form)){
-                var postData = {};
-                postData['name'] = form.crtname.value;
-                postData['details'] = form.crtdetails.value;
-                $.ajax({
-                    url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(requestFail)
-                .done(createEventDone(form.crtname.value));
-            }
-        }else{
-            adminLogout('expired');
+function createEventSubmit(event){
+    event.preventDefault();
+    if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        /* form element used to generically validate form elements (could also serialize the form if necessary)
+        *  Also using form to create json Post data from form's elements
+        */
+        var form = this;
+        if(validate(form)){
+            var postData = {};
+            postData['name'] = form.crtname.value;
+            postData['details'] = form.crtdetails.value;
+            $.ajax({
+                url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
+                type: 'POST',
+                dataType : 'json',
+                contentType: 'application/json; charset=utf-8',
+                data : JSON.stringify(postData)
+            })
+            .fail(requestFail)
+            .done(createEventDone(form.crtname.value));
         }
-    });
+    }else{
+        adminLogout('expired');
+    }
 }
 
 var createEventDone = function(name){
@@ -296,47 +321,45 @@ function notifyEvent(documentId){
     }));
 }
 
-function notifySubmit(){
-    $('#evntNtfctnFrm').off('submit').on('submit',(function( event ) {
-        event.preventDefault();
-        if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
-            /* form element used to generically validate form elements (could also serialize the form if necessary)
-            *  Also using form to create json post data from form's elements
-            */
-            var form = this;
-            var pushSubject = form.ntfctnText.value;
-            var targetEvent = form.targetEvent.value;
-            storeNotification(targetEvent, pushSubject, 20);
+function notifySubmit(event){
+    event.preventDefault();
+    if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        /* form element used to generically validate form elements (could also serialize the form if necessary)
+        *  Also using form to create json post data from form's elements
+        */
+        var form = this;
+        var pushSubject = form.ntfctnText.value;
+        var targetEvent = form.targetEvent.value;
+        storeNotification(targetEvent, pushSubject, 20);
 
-            if(validate(form)){
-                var flow = null;
-                // TODO: Add flow URL's once they are created
-                if(form.andOr.value === 'andFilter'){
-                    flow = 'ANDFLOW';
-                }else{
-                    flow = 'ORFLOW';
-                }
-                var postData = {};
-                postData['access_token'] = sessionStorage.bridgeitUToken;
-                postData['pushSubject'] = pushSubject;
-                postData['targetRole'] = form.targetRole.value;
-                postData['targetEvent'] = targetEvent;
-                postData['targetLctn'] = form.targetLctn.value;
-
-                $.ajax({
-                    url : flow,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(notifyFail)
-                .done(notifyDone);
+        if(validate(form)){
+            var flow = null;
+            // TODO: Add flow URL's once they are created
+            if(form.andOr.value === 'andFilter'){
+                flow = 'ANDFLOW';
+            }else{
+                flow = 'ORFLOW';
             }
-        }else{
-            adminLogout('expired');
+            var postData = {};
+            postData['access_token'] = sessionStorage.bridgeitUToken;
+            postData['pushSubject'] = pushSubject;
+            postData['targetRole'] = form.targetRole.value;
+            postData['targetEvent'] = targetEvent;
+            postData['targetLctn'] = form.targetLctn.value;
+
+            $.ajax({
+                url : flow,
+                type: 'POST',
+                dataType : 'json',
+                contentType: 'application/json; charset=utf-8',
+                data : JSON.stringify(postData)
+            })
+            .fail(notifyFail)
+            .done(notifyDone);
         }
-    }));
+    }else{
+        adminLogout('expired');
+    }
 }
 
 function storeNotification(eventName, pushSubject, lifeseconds)  {

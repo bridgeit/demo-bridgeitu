@@ -16,6 +16,37 @@ window.locations = ['Residence','Computer Science Building','Off Campus'];
 window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
 window.currentLocation = 'You are here.';
 
+function initIndexPage() {
+    bridgeit.useServices({
+            realm:"bridgeit.u",
+            serviceBase:"http://dev.bridgeit.io"});
+
+    $('#purchaseBttn').prop('disabled', true);
+    $('#loginModalForm').submit(loginSubmit());
+    $('#logoutNavbar').click(logoutClick());
+    // Anonymous token for viewing events
+    if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
+        retrieveEvents();
+        registerPushUsernameGroup('anonymous');
+    }else{
+        anonymousLogin();
+    }
+    // No Student token
+    if(!localStorage.bridgeitUToken){
+        showLoginNavbar();
+        $('#purchasePanel').hide();
+        $('#ticketsPanel').hide();
+        $('#locationPanel').hide();
+    // Valid Student token - logged in
+    } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+        studentLoggedIn();
+        registerPushUsernameGroup(localStorage.bridgeitUUsername);
+    // Invalid Student token - log out
+    }else{
+        studentLogout('expired');
+    }
+}
+
 function anonymousLogin(){
     // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
     var postData = {'username' : 'anonymous',
@@ -175,43 +206,45 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
         document.getElementById('ticketQuantity').value = null;
         document.getElementById('ticketName').value = data.name;
         document.getElementById('ticketDetails').value = data.details;
-        $('#purchaseTcktFrm').off('submit').on('submit',(function( event ) {
-            event.preventDefault();
-            /* form element used to generically validate form elements (could also serialize the form if necessary)
-            *  Also using form to create json post data from form's elements
-            */
-            var form = this;
-            if(validate(form)){
-                var postData = {};
-                postData['access_token'] = localStorage.bridgeitUToken;
-                postData['eventname'] = form.ticketName.value;
-                postData['quantity'] = form.ticketQuantity.value;
-                // Also submit user record to be updated in purchaseFlow
-                var submittedUserRecord = {};
-                // Ternary operator necessary in case user record does not exist in doc service
-                submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
-                submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
-                submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
-                submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
-                var ticketArray = [];
-                for(var i=0; i<form.ticketQuantity.value; i++){
-                    ticketArray.push({name:form.ticketName.value});
-                }
-                submittedUserRecord['tickets'] = submittedUserRecord['tickets'].concat(ticketArray);
-                postData['user_record'] = submittedUserRecord;
-                $.ajax({
-                    url : window.ticketFlow,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(ticketFail)
-                .done(purchaseTicketDone(ticketArray));
-            }
-        }));
+        $('#purchaseTcktFrm').off('submit').on('submit',(purchaseTicketSubmit));
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
+    }
+}
+
+function purchaseTicketSubmit(event){
+    event.preventDefault();
+    /* form element used to generically validate form elements (could also serialize the form if necessary)
+    *  Also using form to create json post data from form's elements
+    */
+    var form = this;
+    if(validate(form)){
+        var postData = {};
+        postData['access_token'] = localStorage.bridgeitUToken;
+        postData['eventname'] = form.ticketName.value;
+        postData['quantity'] = form.ticketQuantity.value;
+        // Also submit user record to be updated in purchaseFlow
+        var submittedUserRecord = {};
+        // Ternary operator necessary in case user record does not exist in doc service
+        submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
+        submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
+        submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
+        submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
+        var ticketArray = [];
+        for(var i=0; i<form.ticketQuantity.value; i++){
+            ticketArray.push({name:form.ticketName.value});
+        }
+        submittedUserRecord['tickets'] = submittedUserRecord['tickets'].concat(ticketArray);
+        postData['user_record'] = submittedUserRecord;
+        $.ajax({
+            url : window.ticketFlow,
+            type: 'POST',
+            dataType : 'json',
+            contentType: 'application/json; charset=utf-8',
+            data : JSON.stringify(postData)
+        })
+        .fail(ticketFail)
+        .done(purchaseTicketDone(ticketArray));
     }
 }
 

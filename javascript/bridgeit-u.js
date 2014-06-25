@@ -4,7 +4,7 @@ window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.events = {};
 
 function loginSubmit(isAdmin){
-    $('#loginModalForm').submit(function( event ) {
+    return function(event){
         event.preventDefault();
         /* form element used to generically validate form elements (could also serialize the form if necessary)
         *  Also using form to create post data from form's elements
@@ -31,18 +31,18 @@ function loginSubmit(isAdmin){
             //Form fields are invalid, remove any alerts related to authentication
             $('#alertLoginDiv').html('');
         }
-    });
+    };
 }
 
 function logoutClick(isAdmin){
-    $('#logoutNavbar').click(function( event ) {
+    return function(event){
         event.preventDefault();
         if(isAdmin){
             adminLogout();
         }else{
             studentLogout();
         }
-    });
+    };
 }
 
 function loginFail(jqxhr, textStatus, errorThrown){

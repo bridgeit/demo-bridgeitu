@@ -253,36 +253,7 @@
 
 <script type='text/javascript'>
 
-    $(document).ready(function() {
-        bridgeit.useServices({
-                realm:"bridgeit.u",
-                serviceBase:"http://dev.bridgeit.io"});
-
-        $('#purchaseBttn').prop('disabled', true);
-        loginSubmit();
-        logoutClick();
-        // Anonymous token for viewing events
-        if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
-            retrieveEvents();
-            registerPushUsernameGroup('anonymous');
-        }else{
-            anonymousLogin();
-        }
-        // No Student token
-        if(!localStorage.bridgeitUToken){
-            showLoginNavbar();
-            $('#purchasePanel').hide();
-            $('#ticketsPanel').hide();
-            $('#locationPanel').hide();
-        // Valid Student token - logged in
-        } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            studentLoggedIn();
-            registerPushUsernameGroup(localStorage.bridgeitUUsername);
-        // Invalid Student token - log out
-        }else{
-            studentLogout('expired');
-        }
-    });
+    $(document).ready(initIndexPage);
 
 </script>
 </body>
