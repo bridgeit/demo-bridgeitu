@@ -97,7 +97,7 @@ function adminRetrieveEventsDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
         var evntLstDiv = $('#evntLst');
         evntLstDiv.html('');
-        $('#targetEvent option:gt(0)').remove();
+        $('#targetEvent').find('option:gt(0)').remove();
         $.each(data, function(i, obj) {
             // Using Document Service to store users, this will skip the user documents
             if(!obj.type){
