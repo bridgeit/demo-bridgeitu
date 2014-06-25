@@ -336,9 +336,9 @@ function notifySubmit(event){
             var flow = null;
             // TODO: Add flow URL's once they are created
             if(form.andOr.value === 'andFilter'){
-                flow = 'ANDFLOW';
+                flow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
             }else{
-                flow = 'ORFLOW';
+                flow = 'http://dev.bridgeit.io/code/bridgeit.u/notifOr';
             }
             var postData = {};
             postData['access_token'] = sessionStorage.bridgeitUToken;
