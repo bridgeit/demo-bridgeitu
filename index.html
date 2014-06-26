@@ -219,7 +219,7 @@
 <div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true"
      data-backdrop="static">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div id="loginModalContent" class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">×</button>
               <h1 class="text-center">Login</h1>
@@ -234,7 +234,7 @@
                 </div>
                 <div class="form-group">
                   <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
-                  <!--<span class="pull-right"><a href="#">Register</a></span><span><a href="#">Need help?</a></span>-->
+                  <span><a id="register">Register</a></span><!--<span><a href="#">Need help?</a></span>-->
                 </div>
                 <div id="alertLoginDiv"></div>
               </form>
@@ -242,6 +242,32 @@
             <div class="modal-footer">
               <div class="col-md-12">
               <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">Cancel</button>
+            </div>
+            </div>
+        </div>
+        <div id="registerModalContent" class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="closeRegisterModal();">×</button>
+              <h1 class="text-center">Register</h1>
+            </div>
+            <div class="modal-body">
+              <form id="registerModalForm" class="form col-md-12 center-block">
+                <div class="form-group">
+                  <input id="regUserName" name="regUserName" type="text" class="form-control input-lg" placeholder="Username">
+                </div>
+                <div class="form-group">
+                  <input type="regPassword" name="regPassWord" class="form-control input-lg" value="templatePassword" disabled>
+                </div>
+                <div class="form-group">
+                  <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
+                  <!--<span><a href="#">Need help?</a></span>-->
+                </div>
+                <div id="alertRegisterDiv"></div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <div class="col-md-12">
+              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="closeRegisterModal();">Cancel</button>
             </div>
             </div>
         </div>

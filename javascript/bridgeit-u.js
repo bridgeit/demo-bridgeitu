@@ -54,8 +54,8 @@ function loginFail(jqxhr, textStatus, errorThrown){
     }
 }
 
-function registerPushUsernameGroup(username){
-    bridgeit.login(username, username);
+function registerPushUsernameGroup(username, password){
+    bridgeit.login(username, password);
     bridgeit.usePushService();
     bridgeit.addPushListener(username, 'handlePush');
 }
@@ -201,6 +201,12 @@ function errorAlert(message){
 
 function loginErrorAlert(message){
     $('#alertLoginDiv').html(
+        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
+    );
+}
+
+function registerErrorAlert(message){
+    $('#alertRegisterDiv').html(
         $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
     );
 }

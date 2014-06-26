@@ -1,3 +1,4 @@
+window.quickUser = 'http://dev.bridgeit.io/authadmin/bridgeit.u/quickuser';
 window.ticketFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticket';
 window.userRecord = {};
 // gmap location
@@ -25,10 +26,13 @@ function initIndexPage() {
     $('#purchaseTcktFrm').submit(purchaseTicketSubmit);
     $('#loginModalForm').submit(loginSubmit());
     $('#logoutNavbar').click(logoutClick());
+    $('#registerModalContent').hide();
+    $('#register').click(toggleLoginRegister);
+    $('#registerModalForm').submit(registerSubmit);
     // Anonymous token for viewing events
     if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
         retrieveEvents();
-        registerPushUsernameGroup('anonymous');
+        registerPushUsernameGroup('anonymous','anonymous');
     }else{
         anonymousLogin();
     }
@@ -41,7 +45,7 @@ function initIndexPage() {
     // Valid Student token - logged in
     } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         studentLoggedIn();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername);
+        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUUsername);
     // Invalid Student token - log out
     }else{
         studentLogout('expired');
@@ -68,7 +72,7 @@ function anonymousLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUAnonymousToken = data.access_token;
         localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
         retrieveEvents();
-        registerPushUsernameGroup('anonymous');
+        registerPushUsernameGroup('anonymous','anonymous');
     }else{
         serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
     }
@@ -81,7 +85,7 @@ function studentLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUToken = data.access_token;
         localStorage.bridgeitUTokenExpires = data.expires_in;
         localStorage.bridgeitUUsername = $('#userName').val();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername);
+        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUUsername);
         studentLoggedIn();
     }else{
         serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
@@ -110,6 +114,59 @@ function studentLogout(expired){
         $('#loginModal').modal('show');
         loginErrorAlert('Session Expired');
     }
+}
+
+function toggleLoginRegister(event){
+    $('#loginModalContent').toggle();
+    $('#registerModalContent').toggle();
+}
+
+function registerSubmit(event){
+    event.preventDefault();
+    /* form element used to generically validate form elements (could also serialize the form if necessary)
+    *  Also using form to create post data from form's elements
+    */
+    var form = this;
+    if(validate(form)){
+        var postData = { user: {username: form.regUserName.value} };
+        $.ajax({
+            url : window.quickUser,
+            type: 'POST',
+            dataType : 'json',
+            contentType: 'application/json; charset=utf-8',
+            data : JSON.stringify(postData)
+        })
+        .fail(registerFail)
+        .done(registerDone);
+    }else{
+        //Form fields are invalid, remove any alerts related to authentication
+        $('#alertRegisterDiv').html('');
+    }
+}
+
+function registerFail(jqxhr, textStatus, errorThrown){
+    registerErrorAlert(textStatus);
+}
+
+function registerDone(data, textStatus, jqxhr){
+    if( jqxhr.status === 201){
+        // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
+        // Login is required to retrieve a token so purchases can be made and notifications received
+        localStorage.bridgeitUToken = data.token.access_token;
+        localStorage.bridgeitUTokenExpires = data.token.expires_in;
+        localStorage.bridgeitUUsername = $('#regUserName').val();
+        registerPushUsernameGroup(localStorage.bridgeitUUsername,'templatePassword');
+        toggleLoginRegister();
+        studentLoggedIn();
+    }else{
+        serviceRequestUnexpectedStatusAlert('Register', jqxhr.status);
+    }
+}
+
+function closeRegisterModal(){
+    $('#regUserName').val('');
+    toggleLoginRegister();
+    resetLoginForm();
 }
 
 function retrieveEvents(){
