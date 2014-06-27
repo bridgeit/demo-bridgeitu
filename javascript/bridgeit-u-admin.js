@@ -35,7 +35,7 @@ function initAdminPage() {
     // Valid Admin token - logged in
     } else if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
         adminLoggedIn();
-        registerPushUsernameGroup(sessionStorage.bridgeitUUsername);
+        registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUUsername);
     // Invalid Admin token - log out
     }else{
         adminLogout('expired');
@@ -68,7 +68,7 @@ var adminPermissionDone = function(token, expires_in){
             sessionStorage.bridgeitUToken = token;
             sessionStorage.bridgeitUTokenExpires = expires_in;
             sessionStorage.bridgeitUUsername = $('#userName').val();
-            registerPushUsernameGroup(sessionStorage.bridgeitUUsername);
+            registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUUsername);
             adminLoggedIn();
         }else{
             serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
