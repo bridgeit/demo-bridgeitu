@@ -32,7 +32,7 @@ function initIndexPage() {
     // Anonymous token for viewing events
     if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
         retrieveEvents();
-        registerPushUsernameGroup('anonymous','anonymous');
+        registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
     }else{
         anonymousLogin();
     }
@@ -45,7 +45,7 @@ function initIndexPage() {
     // Valid Student token - logged in
     } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         studentLoggedIn();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUUsername);
+        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
     // Invalid Student token - log out
     }else{
         studentLogout('expired');
@@ -72,7 +72,7 @@ function anonymousLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUAnonymousToken = data.access_token;
         localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
         retrieveEvents();
-        registerPushUsernameGroup('anonymous','anonymous');
+        registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
     }else{
         serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
     }
@@ -85,7 +85,7 @@ function studentLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUToken = data.access_token;
         localStorage.bridgeitUTokenExpires = data.expires_in;
         localStorage.bridgeitUUsername = $('#userName').val();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUUsername);
+        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
         studentLoggedIn();
     }else{
         serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
@@ -155,7 +155,7 @@ function registerDone(data, textStatus, jqxhr){
         localStorage.bridgeitUToken = data.token.access_token;
         localStorage.bridgeitUTokenExpires = data.token.expires_in;
         localStorage.bridgeitUUsername = $('#regUserName').val();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername,'templatePassword');
+        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
         toggleLoginRegister();
         studentLoggedIn();
     }else{

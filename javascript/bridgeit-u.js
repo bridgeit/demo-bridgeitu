@@ -1,5 +1,6 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
+window.pushUri = 'http://dev.bridgeit.io/push'
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
 window.events = {};
 
@@ -54,9 +55,8 @@ function loginFail(jqxhr, textStatus, errorThrown){
     }
 }
 
-function registerPushUsernameGroup(username, password){
-    bridgeit.login(username, password);
-    bridgeit.usePushService();
+function registerPushUsernameGroup(username, token){
+    bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
     bridgeit.addPushListener(username, 'handlePush');
 }
 
