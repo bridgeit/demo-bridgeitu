@@ -124,21 +124,37 @@ function validate(form){
     return formValid;
 }
 
+function confirmPassword(password, confirm){
+    if(password === confirm){
+        return true;
+    }else{
+        registerErrorAlert('Passwords do not match.');
+        return false;
+    }
+}
+
 function uiLoggedIn(username){
     $('#welcome').html('Welcome: ' + username);
     showLogoutNavbar();
-    resetLoginForm();
+    resetLoginBody();
     $('#loginModal').modal('hide');
     // clear previous user notices
     removeNoticesInfoClass();
     $('#alertDiv').html('');
 }
 
-function resetLoginForm(){
+function resetLoginBody(){
     var loginForm = document.getElementById('loginModalForm');
     loginForm.reset();
     $('#alertLoginDiv').html('');
     resetFormCSS(loginForm);
+}
+
+function resetRegisterBody(){
+    var registerForm = document.getElementById('registerModalForm');
+    registerForm.reset();
+    $('#alertRegisterDiv').html('');
+    resetFormCSS(registerForm);
 }
 
 function resetFormCSS(form){

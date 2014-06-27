@@ -127,8 +127,10 @@ function registerSubmit(event){
     *  Also using form to create post data from form's elements
     */
     var form = this;
-    if(validate(form)){
-        var postData = { user: {username: form.regUserName.value} };
+    if(validate(form) && confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
+        var postData = { user: {username: form.regUserName.value,
+                                password: form.regPassWord.value,
+                                password_confirm: form.confirmPassWord.value} };
         $.ajax({
             url : window.quickUser,
             type: 'POST',
@@ -138,9 +140,6 @@ function registerSubmit(event){
         })
         .fail(registerFail)
         .done(registerDone);
-    }else{
-        //Form fields are invalid, remove any alerts related to authentication
-        $('#alertRegisterDiv').html('');
     }
 }
 
@@ -164,9 +163,9 @@ function registerDone(data, textStatus, jqxhr){
 }
 
 function closeRegisterModal(){
-    $('#regUserName').val('');
+    resetRegisterBody();
     toggleLoginRegister();
-    resetLoginForm();
+    resetLoginBody();
 }
 
 function retrieveEvents(){

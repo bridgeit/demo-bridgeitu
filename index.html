@@ -221,7 +221,7 @@
     <div class="modal-dialog">
         <div id="loginModalContent" class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">×</button>
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginBody();">×</button>
               <h1 class="text-center">Login</h1>
             </div>
             <div class="modal-body">
@@ -241,7 +241,7 @@
             </div>
             <div class="modal-footer">
               <div class="col-md-12">
-              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginForm();">Cancel</button>
+              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginBody();">Cancel</button>
             </div>
             </div>
         </div>
@@ -256,7 +256,8 @@
                   <input id="regUserName" name="regUserName" type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
-                  <input type="regPassword" name="regPassWord" class="form-control input-lg" value="templatePassword" disabled>
+                  <input type="password" name="regPassWord" class="form-control input-lg" placeholder="Password">
+                  <input type="password" name="confirmPassWord" class="form-control input-lg" placeholder="Confirm Password">
                 </div>
                 <div class="form-group">
                   <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
