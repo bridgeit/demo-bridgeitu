@@ -333,7 +333,6 @@ function notifySubmit(event){
 
         if(validate(form)){
             var flow = null;
-            // TODO: Add flow URL's once they are created
             if(form.andOr.value === 'andFilter'){
                 flow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
             }else{
@@ -391,11 +390,15 @@ function notifyFail(jqxhr, textStatus, errorThrown){
 
 function notifyDone(data, textStatus, jqxhr){
     if(jqxhr.status === 200){
-        infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
-        resetForm('oldEvntNtfctnFrm');
-        $('#evntNtfctnModal').modal('hide');
+        if(data.pushSubject){
+            infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
+            resetForm('oldEvntNtfctnFrm');
+            $('#evntNtfctnModal').modal('hide');
+        }else{
+            infoAlert('<strong>Custom</strong> notification sent.');
+        }
     }else{
-        serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
+        serviceRequestUnexpectedStatusAlert('Notify', jqxhr.status);
     }
 }
 
