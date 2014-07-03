@@ -20,7 +20,6 @@ function initAdminPage() {
             realm:"bridgeit.u",
             serviceBase:"http://dev.bridgeit.io"});
 
-    $('#evntNtfctnDiv').hide();
     $('#crtEvntFrm').submit(createEventSubmit);
     $('#evntNtfctnFrm').submit(notifySubmit);
     $('#loginModalForm').submit(loginSubmit('admin'));
@@ -98,7 +97,8 @@ function adminLogout(expired){
     sessionStorage.removeItem('bridgeitUToken');
     sessionStorage.removeItem('bridgeitUTokenExpires');
     sessionStorage.removeItem('bridgeitUUsername');
-    toggleCreateNotifyEvent();
+    $('#editModal').modal('hide');
+    $('#evntNtfctnModal').modal('hide');
     showLoginNavbar();
     $('#welcome').html('');
     // Force login by showing modal login and initially hide close and cancel buttons
@@ -279,7 +279,6 @@ function notifyCRUDEvent(){
 
 function notifyEvent(documentId){
     $('#ntfctnTextLabel').html(window.events[documentId]);
-    notifyEventShow();
     $('#oldEvntNtfctnFrm').off('submit').on('submit',(function( event ) {
         event.preventDefault();
         if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
@@ -393,21 +392,11 @@ function notifyFail(jqxhr, textStatus, errorThrown){
 function notifyDone(data, textStatus, jqxhr){
     if(jqxhr.status === 200){
         infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
-        toggleCreateNotifyEvent();
+        resetForm('oldEvntNtfctnFrm');
+        $('#evntNtfctnModal').modal('hide');
     }else{
         serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
     }
-}
-
-function notifyEventShow(){
-    document.getElementById('oldEvntNtfctnFrm').reset();
-    $('#crtEvntDiv').hide();
-    $('#evntNtfctnDiv').show('slow');
-}
-
-function toggleCreateNotifyEvent(){
-    $('#evntNtfctnDiv').hide();
-    $('#crtEvntDiv').show('slow');
 }
 
 function changeAndOrLabels(select){

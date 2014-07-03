@@ -168,6 +168,11 @@ function closeRegisterModal(){
     resetLoginBody();
 }
 
+function resetRegisterBody(){
+    resetForm('registerModalForm');
+    $('#alertRegisterDiv').html('');
+}
+
 function retrieveEvents(){
     $.getJSON(window.documentService  + '?access_token=' + localStorage.bridgeitUAnonymousToken)
     .fail(retrieveEventsFail)

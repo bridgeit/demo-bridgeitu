@@ -1,6 +1,6 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
-window.pushUri = 'http://dev.bridgeit.io/push'
+window.pushUri = 'http://dev.bridgeit.io/push';
 // Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
 window.events = {};
 
@@ -144,17 +144,14 @@ function uiLoggedIn(username){
 }
 
 function resetLoginBody(){
-    var loginForm = document.getElementById('loginModalForm');
-    loginForm.reset();
+    resetForm('loginModalForm');
     $('#alertLoginDiv').html('');
-    resetFormCSS(loginForm);
 }
 
-function resetRegisterBody(){
-    var registerForm = document.getElementById('registerModalForm');
-    registerForm.reset();
-    $('#alertRegisterDiv').html('');
-    resetFormCSS(registerForm);
+function resetForm(formId){
+    var formToReset = document.getElementById(formId);
+    formToReset.reset();
+    resetFormCSS(formToReset);
 }
 
 function resetFormCSS(form){

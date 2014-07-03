@@ -219,7 +219,7 @@
                 </div><!--/col-span-6-->
             </div>
             <div class="row">
-                <div id='crtEvntDiv' class="col-md-6">
+                <div class="col-md-6">
                     <div class="panel panel-default">
                         <!-- Create Event -->
                         <div class="panel-heading">
@@ -259,56 +259,6 @@
                         </div>
                     </div>
                 </div><!--/col-span-6-->
-                <div id='evntNtfctnDiv' class="col-md-6">
-                    <div class="panel panel-primary">
-                        <!-- Event Notification -->
-                        <div class="panel-heading">
-                            <div class="panel-title">
-                            <i class="glyphicon glyphicon-bullhorn pull-right"></i>
-                            <h4>Event Notification</h4>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <form id="oldEvntNtfctnFrm" class="form form-vertical">
-                                <div class="control-group">
-                                    <label id="ntfctnTextLabel"></label>
-                                    <div class="controls">
-                                       <input name="ntfctnText"
-                                              type="text"
-                                              class="form-control"
-                                              placeholder="Enter Notification Text">
-                                    </div>
-                                </div>
-                                <div class="control-group">
-                                    <label>
-                                        Flow
-                                    </label>
-                                    <div class="controls">
-                                        <select name="ntfctnSlct" class="form-control">
-                                            <option value="1">All</option>
-                                            <option value="2">All Students</option>
-                                            <option value="3">No ticket, on campus</option>
-                                            <option value="4">Ticket holders</option>
-                                            <option value="5">Residence</option>
-                                            <option value="6">On-Campus</option>
-                                            <option value="7">Off-Campus</option>
-                                            <option value="8">Custom</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="control-group">
-                                    <label></label>
-                                    <div class="controls">
-                                        <button type="submit" class="btn btn-primary">
-                                          Send
-                                        </button>
-                                        <button class="btn pull-right" type="button" onclick="toggleCreateNotifyEvent();">Cancel</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div><!--/col-span-6-->
             </div><!--/row-->
         </div><!--/col-span-9-->
     </div><!--/row-->
@@ -316,6 +266,55 @@
 <!-- /Main -->
 
 <footer class="text-center">This Bootstrap 3 dashboard layout is compliments of <a href="http://www.bootply.com/85850"><strong>Bootply.com</strong></a></footer>
+
+<div class="modal" id="evntNtfctnModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetForm('oldEvntNtfctnFrm');">×</button>
+            <h4 class="modal-title">Event Notification</h4>
+          </div>
+          <div class="modal-body">
+              <form id="oldEvntNtfctnFrm" class="form form-vertical">
+                  <div class="control-group">
+                      <label id="ntfctnTextLabel"></label>
+                      <div class="controls">
+                         <input name="ntfctnText"
+                                type="text"
+                                class="form-control"
+                                placeholder="Enter Notification Text">
+                      </div>
+                  </div>
+                  <div class="control-group">
+                      <label>
+                          Flow
+                      </label>
+                      <div class="controls">
+                          <select name="ntfctnSlct" class="form-control">
+                              <option value="1">All</option>
+                              <option value="2">All Students</option>
+                              <option value="3">No ticket, on campus</option>
+                              <option value="4">Ticket holders</option>
+                              <option value="5">Residence</option>
+                              <option value="6">On-Campus</option>
+                              <option value="7">Off-Campus</option>
+                              <option value="8">Custom</option>
+                          </select>
+                      </div>
+                  </div>
+                  <div class="control-group">
+                      <label></label>
+                      <div class="controls">
+                          <button type="submit" class="btn btn-primary">
+                            Send
+                          </button>
+                      </div>
+                  </div>
+              </form>
+          </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dalog -->
+</div><!-- /.modal -->
 
 <div class="modal" id="editModal">
     <div class="modal-dialog">
