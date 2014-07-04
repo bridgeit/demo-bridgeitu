@@ -147,9 +147,10 @@
                                     <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">Message</h5></div>
                                     <div class="panel-body panelBodyReducedPadding">
                                         <div class="form-group formGroupReducedMargin">
-                                            <label class="col-sm-2 control-label">Message</label>
+                                            <label for="ntfctnText" class="col-sm-2 control-label">Message</label>
                                             <div class="col-sm-10">
-                                                <input name="ntfctnText"
+                                                <input id="ntfctnText"
+                                                       name="ntfctnText"
                                                        type="text"
                                                        class="form-control input-sm"
                                                        placeholder="Enter Notification Text">
@@ -158,9 +159,9 @@
                                     </div>
                                 </div><!--panel-->
                                 <div class="form-group formGroupReducedMargin">
-                                    <label class="col-sm-0 control-label"></label>
+                                    <label for="andOr" class="col-sm-0 control-label"></label>
                                     <div class="col-sm-5">
-                                        <select name="andOr" class="form-control input-sm" onchange="changeAndOrLabels(this);">
+                                        <select id="andOr" name="andOr" class="form-control input-sm" onchange="changeAndOrLabels(this);">
                                             <option value="andFilter">"And" Filter ...</option>
                                             <option value="orFilter">"Or" Filter ...</option>
                                         </select>
@@ -170,9 +171,9 @@
                                     <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">1 - Role</h5></div>
                                     <div class="panel-body panelBodyReducedPadding">
                                         <div class="form-group formGroupReducedMargin">
-                                            <label class="col-sm-2 control-label">Role</label>
+                                            <label for="targetRole" class="col-sm-2 control-label">Role</label>
                                             <div class="col-sm-10">
-                                                <select name="targetRole" class="form-control input-sm">
+                                                <select id="targetRole" name="targetRole" class="form-control input-sm">
                                                     <option value="!role">All</option>
                                                     <option value="u.student">Student</option>
                                                     <option value="!u.student">Not - Student</option>
@@ -185,7 +186,7 @@
                                     <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">2 - <span id="holdsLabel">And</span>  Holds</h5></div>
                                     <div class="panel-body panelBodyReducedPadding">
                                         <div class="form-group formGroupReducedMargin">
-                                            <label class="col-sm-2 control-label">Tickets</label>
+                                            <label for="targetEvent" class="col-sm-2 control-label">Tickets</label>
                                             <div class="col-sm-10">
                                                 <select id="targetEvent" name="targetEvent" class="form-control input-sm">
                                                     <option value="!event">None</option>
@@ -198,9 +199,9 @@
                                     <div class="panel-heading panelHeadingReducedPadding"><h5 class="noPanelHeadingMargin">3 - <span id="locationLabel">And</span>  Location</h5></div>
                                     <div class="panel-body panelBodyReducedPadding">
                                         <div class="form-group formGroupReducedMargin">
-                                            <label class="col-sm-2 control-label">Location</label>
+                                            <label for="targetLctn" class="col-sm-2 control-label">Location</label>
                                             <div class="col-sm-10">
-                                                <select name="targetLctn" class="form-control input-sm">
+                                                <select id="targetLctn" name="targetLctn" class="form-control input-sm">
                                                     <option value="!location">Select</option>
                                                     <option value="Residence">Residence</option>
                                                     <option value="!Residence">Not - Residence</option>
@@ -234,18 +235,18 @@
                         <div class="panel-body">
                             <form id="crtEvntFrm" class="form form-vertical">
                                 <div class="control-group">
-                                  <label>Event Name</label>
+                                  <label for="crtname">Event Name</label>
                                   <div class="controls">
-                                   <input name="crtname"
+                                   <input id="crtname" name="crtname"
                                           type="text"
                                           class="form-control"
                                           placeholder="Enter Event Name">
                                   </div>
                                 </div>
                                 <div class="control-group">
-                                  <label>Event Details</label>
+                                  <label for="crtdetails">Event Details</label>
                                   <div class="controls">
-                                    <textarea name="crtdetails"
+                                    <textarea id="crtdetails" name="crtdetails"
                                               class="form-control"
                                               placeholder="Enter Event Details"></textarea>
                                   </div>
@@ -280,20 +281,20 @@
           <div class="modal-body">
               <form id="oldEvntNtfctnFrm" class="form form-vertical">
                   <div class="control-group">
-                      <label id="ntfctnTextLabel"></label>
+                      <label for="oldNtfctnText" id="ntfctnTextLabel"></label>
                       <div class="controls">
-                         <input name="ntfctnText"
+                         <input id="oldNtfctnText" name="oldNtfctnText"
                                 type="text"
                                 class="form-control"
                                 placeholder="Enter Notification Text">
                       </div>
                   </div>
                   <div class="control-group">
-                      <label>
+                      <label for="ntfctnSlct">
                           Flow
                       </label>
                       <div class="controls">
-                          <select name="ntfctnSlct" class="form-control">
+                          <select id="ntfctnSlct" name="ntfctnSlct" class="form-control">
                               <option value="1">All</option>
                               <option value="2">All Students</option>
                               <option value="3">No ticket, on campus</option>
@@ -330,7 +331,7 @@
               <form id="edtEvntFrm" class="form form-vertical">
 
                 <div class="control-group">
-                  <label>Event Name</label>
+                  <label for="edtName">Event Name</label>
                   <div class="controls">
                    <input id="edtName" name="edtName"
                           type="text"
@@ -339,7 +340,7 @@
                 </div>
 
                 <div class="control-group">
-                  <label>Event Details</label>
+                  <label for="edtDetails">Event Details</label>
                   <div class="controls">
                     <textarea id="edtDetails" name="edtDetails"
                               class="form-control"></textarea>
@@ -373,10 +374,12 @@
             <div class="modal-body">
               <form id="loginModalForm" class="form col-md-12 center-block">
                 <div class="form-group">
+                  <label class="sr-only" for="userName">Username</label>
                   <input id="userName" name="userName" type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
-                  <input type="password" name="passWord" class="form-control input-lg" placeholder="Password">
+                  <label class="sr-only" for="passWord">Password</label>
+                  <input type="password" id="passWord" name="passWord" class="form-control input-lg" placeholder="Password">
                 </div>
                 <div class="form-group">
                 <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>

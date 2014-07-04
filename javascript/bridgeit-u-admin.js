@@ -287,7 +287,7 @@ function notifyEvent(documentId){
             */
             var form = this;
             var eventName = window.events[documentId];
-            var pushSubject = form.ntfctnText.value;
+            var pushSubject = form.oldNtfctnText.value;
             storeNotification(eventName, pushSubject, 20);
 
             if(validate(form)){
@@ -392,11 +392,11 @@ function notifyDone(data, textStatus, jqxhr){
     if(jqxhr.status === 200){
         if(data.pushSubject){
             infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
-            resetForm('oldEvntNtfctnFrm');
-            $('#evntNtfctnModal').modal('hide');
         }else{
             infoAlert('<strong>Custom</strong> notification sent.');
         }
+        resetForm('oldEvntNtfctnFrm');
+        $('#evntNtfctnModal').modal('hide');
     }else{
         serviceRequestUnexpectedStatusAlert('Notify', jqxhr.status);
     }

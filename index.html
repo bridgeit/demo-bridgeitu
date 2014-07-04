@@ -158,7 +158,7 @@
                         <div class="panel-body">
                             <form id="purchaseTcktFrm" class="form form-vertical">
                                 <div class="control-group">
-                                  <label>Event Name</label>
+                                  <label for="ticketName">Event Name</label>
                                   <div class="controls">
                                    <input id="ticketName" name="ticketName"
                                           type="text"
@@ -167,7 +167,7 @@
                                   </div>
                                 </div>
                                 <div class="control-group">
-                                  <label>Number of Tickets</label>
+                                  <label for="ticketQuantity">Number of Tickets</label>
                                   <div class="controls">
                                    <input id="ticketQuantity" name="ticketQuantity"
                                           type="number"
@@ -177,7 +177,7 @@
                                   </div>
                                 </div>
                                 <div class="control-group">
-                                  <label>Event Details</label>
+                                  <label for="ticketDetails">Event Details</label>
                                   <div class="controls">
                                     <textarea id="ticketDetails" name="ticketDetails"
                                               class="form-control"
@@ -230,10 +230,12 @@
             <div class="modal-body">
               <form id="loginModalForm" class="form col-md-12 center-block">
                 <div class="form-group">
+                  <label class="sr-only" for="userName">Username</label>
                   <input id="userName" name="userName" type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
-                  <input type="password" name="passWord" class="form-control input-lg" placeholder="Password">
+                  <label class="sr-only" for="passWord">Password</label>
+                  <input type="password" id="passWord" name="passWord" class="form-control input-lg" placeholder="Password">
                 </div>
                 <div class="form-group">
                   <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
@@ -256,11 +258,14 @@
             <div class="modal-body">
               <form id="registerModalForm" class="form col-md-12 center-block">
                 <div class="form-group">
+                  <label class="sr-only" for="regUserName">Username</label>
                   <input id="regUserName" name="regUserName" type="text" class="form-control input-lg" placeholder="Username">
                 </div>
                 <div class="form-group">
-                  <input type="password" name="regPassWord" class="form-control input-lg" placeholder="Password">
-                  <input type="password" name="confirmPassWord" class="form-control input-lg" placeholder="Confirm Password">
+                  <label class="sr-only" for="regPassWord">Password</label>
+                  <input type="password" id="regPassWord" name="regPassWord" class="form-control input-lg" placeholder="Password">
+                  <label class="sr-only" for="confirmPassWord">Confirm Password</label>
+                  <input type="password" id="confirmPassWord" name="confirmPassWord" class="form-control input-lg" placeholder="Confirm Password">
                 </div>
                 <div class="form-group">
                   <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
