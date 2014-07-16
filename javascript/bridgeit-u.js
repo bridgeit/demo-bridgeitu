@@ -13,7 +13,7 @@ function loginSubmit(isAdmin){
         var form = this;
         if(validate(form)){
             // Avoid getting a token from anonymous credentials
-            if(!isAdmin && (form.userName.value === 'anonymous' && form.passWord.value === 'anonymous')){
+            if((isAdmin === undefined) && (form.userName.value === 'anonymous' && form.passWord.value === 'anonymous')){
                 loginErrorAlert('Invalid Credentials');
                 return;
             }
@@ -181,7 +181,7 @@ function removeNoticesInfoClass(){
 }
 
 function tokenValid(token, expires, type){
-    return token && (parseInt(expires) > new Date().getTime());
+    return (token !== undefined) && (parseInt(expires) > new Date().getTime());
 }
 
 function infoAlert(message){

@@ -1,5 +1,6 @@
 window.quickUser = 'http://dev.bridgeit.io/authadmin/bridgeit.u/quickuser';
 window.ticketFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticket';
+window.locationsService = 'http://dev.bridgeit.io/locate/bridgeit.u/locations';
 window.userRecord = {};
 // gmap location
 window.map = null;
@@ -12,9 +13,6 @@ window.mapOptions = {
 };
 window.markers = [];
 window.center = null;
-window.counter = 0;
-window.locations = ['Residence','Computer Science Building','Off Campus'];
-window.randomLocation = (Math.floor(Math.random() * locations.length)) + 1;
 window.currentLocation = 'You are here.';
 
 function initIndexPage() {
@@ -37,7 +35,7 @@ function initIndexPage() {
         anonymousLogin();
     }
     // No Student token
-    if(!localStorage.bridgeitUToken){
+    if(localStorage.bridgeitUToken === undefined){
         showLoginNavbar();
         $('#purchasePanel').hide();
         $('#ticketsPanel').hide();
@@ -185,7 +183,7 @@ function retrieveEventsDone(data, textStatus, jqxhr){
         evntLstDiv.html('');
         $.each(data, function(i, obj) {
             // Using Document Service to store users and notifications, this will skip them
-            if(!obj.type){
+            if(obj.type === undefined){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                 window.events[obj._id] = obj.name;
                 evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
@@ -206,6 +204,8 @@ function initializeStudentDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
         window.userRecord = data;
         displayTickets();
+        // TODO:
+        /*
         var lctnLabel = $('#crrntLctn');
         lctnLabel.html('');
         if(data.location){
@@ -214,7 +214,8 @@ function initializeStudentDone(data, textStatus, jqxhr){
         }else{
             window.currentLocation = 'You are here.';
         }
-        locationMapInit();
+        */
+        retrieveLocation();
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
     }
@@ -226,20 +227,49 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
         window.userRecord = {};
         window.userRecord['tickets'] = [];
         $('#evntTcktLst').html('');
+        // TODO:
+        /*
         $('#crrntLctn').html('');
         window.currentLocation = 'You are here.';
+        */
         locationMapInit();
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
+function retrieveLocation(){
+    $.getJSON(window.locationsService  + '?access_token=' + localStorage.bridgeitUToken + '&results=one&query={"username":"' + localStorage.bridgeitUUsername + '"}&options={"sort":[["lastUpdated","desc"]]}')
+    .fail(retrieveLocationFail)
+    .done(retrieveLocationDone);
+}
+
+function retrieveLocationDone(data, textStatus, jqxhr){
+    if( jqxhr.status === 200){
+        locationMapInit(data['location']['geometry'].coordinates[1],data['location']['geometry'].coordinates[0]);
+    }else{
+        serviceRequestUnexpectedStatusAlert('Retrieve Location', jqxhr.status);
+    }
+}
+
+function retrieveLocationFail(jqxhr, textStatus, errorThrown){
+    if(jqxhr.status === 404){
+        // 404 means the list is empty
+    }else{
+        requestFail(jqxhr, textStatus, errorThrown);
+    }
+    locationMapInit();
+}
+
 var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status === 201){
             successAlert('<strong>' + location + '</strong> Location Saved');
+            // TODO:
+            /*
             window.userRecord['location'] = location;
             $('#crrntLctn').html(location);
+            */
         }else{
             serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
         }
@@ -248,7 +278,7 @@ var locationSaveDone = function(location){
 
 function purchaseTicket(documentId){
     // No token, prompt student to login
-    if(!localStorage.bridgeitUToken){
+    if(localStorage.bridgeitUToken === undefined){
         $('#loginModal').modal('show');
         return;
     }
@@ -289,7 +319,8 @@ function purchaseTicketSubmit(event){
         // Ternary operator necessary in case user record does not exist in doc service
         submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
         submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
-        submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
+        // TODO:
+        //submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
         submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
         var ticketArray = [];
         for(var i=0; i<form.ticketQuantity.value; i++){
@@ -341,7 +372,8 @@ function cancelTicketPurchase(eventName){
     var submittedUserRecord = {};
     submittedUserRecord['_id'] = window.userRecord['_id'];
     submittedUserRecord['type'] = window.userRecord['type'];
-    submittedUserRecord['location'] = window.userRecord['location'];
+    // TODO:
+    //submittedUserRecord['location'] = window.userRecord['location'];
     // slice gives us a new array
     submittedUserRecord['tickets'] = window.userRecord['tickets'].slice(0);
     for(var i=0; i<submittedUserRecord['tickets'].length; i++){
@@ -392,32 +424,35 @@ function displayTickets(){
     }
 }
 
-function locationMapInit(){
+function locationMapInit(lat, lon){
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
-    navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:5000});
+    if(lat === undefined && lon === undefined){
+        navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:5000});
+    }else{
+        setMapPosition(lat, lon);
+    }
 
     google.maps.event.addListener(window.map, 'click', function(event) {
-        var locationIndex = ((window.randomLocation + (window.counter++)) % 3) + 1;
-        window.currentLocation = window.locations[locationIndex-1];
         window.map.setCenter(event.latLng);
         placeMapMarker();
 
         if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             var postData = {};
-            // Ternary operator necessary in case user record does not exist in doc service
-            postData['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
-            postData['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
-            postData['location'] = window.currentLocation;
-            postData['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
+            postData['label'] = 'BridgeIt U Student Location';
+            postData['location'] = {'geometry' : {}, 'properties' : {}};
+            postData['location']['geometry'].coordinates = [event.latLng.lng(),event.latLng.lat()];
+            postData['location']['geometry'].type = 'Point';
+            postData['location']['properties'].label = 'Lat: ' + event.latLng.lat() + ' Long: ' + event.latLng.lng();
+            postData['location']['properties'].timestamp = new Date().toISOString();
             $.ajax({
-                url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
+                url : window.locationsService + '?access_token=' + localStorage.bridgeitUToken,
                 type: 'POST',
                 dataType : 'json',
                 contentType: 'application/json; charset=utf-8',
                 data : JSON.stringify(postData)
             })
             .fail(requestFail)
-            .done(locationSaveDone(window.currentLocation));
+            .done(locationSaveDone(postData['location']['properties'].label));
         }else{
             studentLogout('expired');
         }
@@ -428,15 +463,17 @@ function locationMapInit(){
 }
 
 function geolocationSetPosition(pos){
-    var lat = pos.coords.latitude;
-    var lon = pos.coords.longitude;
-    window.map.setCenter(new google.maps.LatLng(lat,lon) );
-    placeMapMarker();
-    google.maps.event.trigger(window.map, 'resize');
+    setMapPosition(pos.coords.latitude,pos.coords.longitude);
 }
 
 function geolocationError(){
     errorAlert('<strong>Geolocation</strong> problem setting map location.');
+}
+
+function setMapPosition(lat,lon){
+    window.map.setCenter(new google.maps.LatLng(lat,lon) );
+    placeMapMarker();
+    google.maps.event.trigger(window.map, 'resize');
 }
 
 function placeMapMarker(){
