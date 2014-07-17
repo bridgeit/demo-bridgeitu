@@ -61,6 +61,7 @@ function registerPushUsernameGroup(username, token){
 }
 
 function handlePush(){
+    console.log('BridgeIt U Push Callback');
     retrieveEvents();
     // Push called when student Changes Location, retrieve updated user record
     if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
