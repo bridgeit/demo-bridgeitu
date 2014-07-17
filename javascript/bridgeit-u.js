@@ -62,6 +62,10 @@ function registerPushUsernameGroup(username, token){
 
 function handlePush(){
     retrieveEvents();
+    // Push called when student Changes Location, retrieve updated user record
+    if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+        updateStudent();
+    }
     getNotifications(function (data) {
         data.forEach(displayNotification);
     });

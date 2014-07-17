@@ -200,24 +200,41 @@ function initializeStudent(){
     .done(initializeStudentDone);
 }
 
+function updateStudent(){
+    $.getJSON( window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
+    .fail(initializeStudentFail)
+    .done(updateStudentDone);
+}
+
 function initializeStudentDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
         window.userRecord = data;
         displayTickets();
-        // TODO:
-        /*
-        var lctnLabel = $('#crrntLctn');
-        lctnLabel.html('');
-        if(data.location){
-            lctnLabel.html(data.location);
-            window.currentLocation = data.location;
-        }else{
-            window.currentLocation = 'You are here.';
-        }
-        */
+        setCurrentLocationText(data);
         retrieveLocation();
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
+    }
+}
+
+function updateStudentDone(data, textStatus, jqxhr){
+    if( jqxhr.status === 200){
+        window.userRecord = data;
+        displayTickets();
+        setCurrentLocationText(data);
+    }else{
+        serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
+    }
+}
+
+function setCurrentLocationText(data){
+    var lctnLabel = $('#crrntLctn');
+    lctnLabel.html('');
+    if(data.location){
+        lctnLabel.html(data.location);
+        window.currentLocation = data.location;
+    }else{
+        window.currentLocation = 'You are here.';
     }
 }
 
@@ -227,11 +244,8 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
         window.userRecord = {};
         window.userRecord['tickets'] = [];
         $('#evntTcktLst').html('');
-        // TODO:
-        /*
         $('#crrntLctn').html('');
         window.currentLocation = 'You are here.';
-        */
         locationMapInit();
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
@@ -265,11 +279,6 @@ var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status === 201){
             successAlert('<strong>' + location + '</strong> Location Saved');
-            // TODO:
-            /*
-            window.userRecord['location'] = location;
-            $('#crrntLctn').html(location);
-            */
         }else{
             serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
         }
@@ -319,8 +328,7 @@ function purchaseTicketSubmit(event){
         // Ternary operator necessary in case user record does not exist in doc service
         submittedUserRecord['_id'] = (window.userRecord['_id'] ? window.userRecord['_id'] : localStorage.bridgeitUUsername);
         submittedUserRecord['type'] = (window.userRecord['type'] ? window.userRecord['type'] : 'u.student');
-        // TODO:
-        //submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
+        submittedUserRecord['location'] = (window.userRecord['location'] ? window.userRecord['location'] : '');
         submittedUserRecord['tickets'] = (window.userRecord['tickets'] ? window.userRecord['tickets'] : []);
         var ticketArray = [];
         for(var i=0; i<form.ticketQuantity.value; i++){
@@ -372,8 +380,7 @@ function cancelTicketPurchase(eventName){
     var submittedUserRecord = {};
     submittedUserRecord['_id'] = window.userRecord['_id'];
     submittedUserRecord['type'] = window.userRecord['type'];
-    // TODO:
-    //submittedUserRecord['location'] = window.userRecord['location'];
+    submittedUserRecord['location'] = window.userRecord['location'];
     // slice gives us a new array
     submittedUserRecord['tickets'] = window.userRecord['tickets'].slice(0);
     for(var i=0; i<submittedUserRecord['tickets'].length; i++){
