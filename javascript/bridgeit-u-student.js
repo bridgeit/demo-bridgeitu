@@ -1,6 +1,7 @@
 window.quickUser = 'http://dev.bridgeit.io/authadmin/bridgeit.u/quickuser';
 window.ticketFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticket';
 window.locationsService = 'http://dev.bridgeit.io/locate/bridgeit.u/locations';
+window.regionsService = 'http://dev.bridgeit.io/locate/bridgeit.u/regions';
 window.userRecord = {};
 // gmap location
 window.map = null;
@@ -8,12 +9,12 @@ window.mapOptions = {
     zoom: 15,
     maxZoom: 16,
     draggable: false,
-    center: new google.maps.LatLng(51.07816,-114.135801),
+    center: new google.maps.LatLng(30.2852191,-97.7324101),
     mapTypeId: google.maps.MapTypeId.ROADMAP
 };
 window.markers = [];
+window.regionMarkers = [];
 window.center = null;
-window.currentLocation = 'You are here.';
 
 function initIndexPage() {
     bridgeit.useServices({
@@ -232,9 +233,6 @@ function setCurrentLocationText(data){
     lctnLabel.html('');
     if(data.location){
         lctnLabel.html(data.location);
-        window.currentLocation = data.location;
-    }else{
-        window.currentLocation = 'You are here.';
     }
 }
 
@@ -245,7 +243,6 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
         window.userRecord['tickets'] = [];
         $('#evntTcktLst').html('');
         $('#crrntLctn').html('');
-        window.currentLocation = 'You are here.';
         locationMapInit();
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
@@ -433,11 +430,13 @@ function displayTickets(){
 
 function locationMapInit(lat, lon){
     window.map = new google.maps.Map(document.getElementById('map-canvas'), window.mapOptions);
-    if(lat === undefined && lon === undefined){
-        navigator.geolocation.getCurrentPosition(geolocationSetPosition,geolocationError,{timeout:5000});
-    }else{
+    if(lat !== undefined && lon !== undefined){
         setMapPosition(lat, lon);
     }
+
+    $.getJSON(window.regionsService  + '?access_token=' + localStorage.bridgeitUToken)
+    .fail(retrieveRegionsFail)
+    .done(retrieveRegionsDone);
 
     google.maps.event.addListener(window.map, 'click', function(event) {
         window.map.setCenter(event.latLng);
@@ -464,17 +463,36 @@ function locationMapInit(lat, lon){
             studentLogout('expired');
         }
     });
-    // TODO:  This call appears to prevent future calls to navigator.geolocation.getCurrentPosition from working in Chrome
-    //        Investigate when needed.
-    //navigator.geolocation.watchPosition(geolocationSetPosition);
 }
 
-function geolocationSetPosition(pos){
-    setMapPosition(pos.coords.latitude,pos.coords.longitude);
+function retrieveRegionsDone(data, textStatus, jqxhr){
+    if( jqxhr.status === 200){
+        $.each(data, function(i, obj) {
+            window.map.data.setStyle({
+                clickable: false,
+                fillColor: 'blue',
+                strokeWeight: 1
+            });
+            window.map.data.addGeoJson(obj.location);
+            window.regionMarkers.push(new google.maps.Marker({
+              opacity: 0.0,
+              position: new google.maps.LatLng(obj.location.properties.googleMaps.center.k,obj.location.properties.googleMaps.center.B),
+              map: window.map,
+              title: obj._id
+              })
+            );
+        });
+    }else{
+        serviceRequestUnexpectedStatusAlert('Retrieve Regions', jqxhr.status);
+    }
 }
 
-function geolocationError(){
-    errorAlert('<strong>Geolocation</strong> problem setting map location.');
+function retrieveRegionsFail(jqxhr, textStatus, errorThrown){
+    if(jqxhr.status === 404){
+        // 404 means the list is empty
+    }else{
+        requestFail(jqxhr, textStatus, errorThrown);
+    }
 }
 
 function setMapPosition(lat,lon){
@@ -488,7 +506,7 @@ function placeMapMarker(){
     window.markers.push(new google.maps.Marker({
       position: window.map.getCenter(),
       map: window.map,
-      title: window.currentLocation
+      title: 'You are here.'
       })
     );
 }
