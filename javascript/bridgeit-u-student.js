@@ -470,7 +470,9 @@ function retrieveRegionsDone(data, textStatus, jqxhr){
         $.each(data, function(i, obj) {
             window.map.data.setStyle({
                 clickable: false,
+                fillOpacity: 0.3,
                 fillColor: 'blue',
+                strokeOpacity: 0.3,
                 strokeWeight: 1
             });
             window.map.data.addGeoJson(obj.location);
