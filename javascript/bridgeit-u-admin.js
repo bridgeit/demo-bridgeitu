@@ -11,9 +11,11 @@ window.flowLookupObject = {1 : window.anonymousNotificationFlow,
                            3 : window.noTicketOnCampusNotificationFlow,
                            4 : window.ticketHolderNotificationFlow,
                            5 : 'locationResidence',
-                           6 : window.onCampusNotificationFlow,
-                           7 : 'locationOffCampus',
-                           8 : window.customNotificationFlow};
+                           6 : 'locationPerformingArtsCenter',
+                           7 : 'locationStadium',
+                           8 : window.onCampusNotificationFlow,
+                           9 : 'locationOffCampus',
+                           10 : window.customNotificationFlow};
 
 function initAdminPage() {
     bridgeit.useServices({
@@ -299,6 +301,12 @@ function notifyEvent(documentId){
                 // Single flow used for locations - post location property as parameter for locationNotificationFlow
                 if(flow == 'locationResidence'){
                     postData['location'] = 'Residence';
+                    flow = window.locationNotificationFlow;
+                } else if(flow == 'locationPerformingArtsCenter'){
+                    postData['location'] = 'Performing Arts Center';
+                    flow = window.locationNotificationFlow;
+                } else if(flow == 'locationStadium'){
+                    postData['location'] = 'Stadium';
                     flow = window.locationNotificationFlow;
                 } else if(flow == 'locationOffCampus'){
                     postData['location'] = 'Off Campus';
