@@ -8,12 +8,10 @@ window.map = null;
 window.mapOptions = {
     zoom: 15,
     maxZoom: 16,
-    draggable: false,
     center: new google.maps.LatLng(30.2852191,-97.7324101),
     mapTypeId: google.maps.MapTypeId.ROADMAP
 };
 window.markers = [];
-window.regionMarkers = [];
 window.center = null;
 
 function initIndexPage() {
@@ -468,21 +466,22 @@ function locationMapInit(lat, lon){
 function retrieveRegionsDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
         $.each(data, function(i, obj) {
-            window.map.data.setStyle({
-                clickable: false,
-                fillOpacity: 0.3,
-                fillColor: 'blue',
-                strokeOpacity: 0.3,
-                strokeWeight: 1
-            });
             window.map.data.addGeoJson(obj.location);
-            window.regionMarkers.push(new google.maps.Marker({
-              opacity: 0.0,
-              position: new google.maps.LatLng(obj.location.properties.googleMaps.center.k,obj.location.properties.googleMaps.center.B),
-              map: window.map,
-              title: obj._id
-              })
-            );
+        });
+        window.map.data.forEach(function(feature){
+            map.data.setStyle(function(feature) {
+                var color = 'gray';
+                if (feature.getProperty('color')) {
+                  color = feature.getProperty('color');
+                }
+                return ({
+                    clickable: false,
+                    fillOpacity: 0.4,
+                    fillColor: color,
+                    strokeOpacity: 0.4,
+                    strokeWeight: 1
+                });
+            });
         });
     }else{
         serviceRequestUnexpectedStatusAlert('Retrieve Regions', jqxhr.status);
