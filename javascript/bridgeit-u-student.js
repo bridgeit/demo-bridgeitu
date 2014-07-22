@@ -60,7 +60,7 @@ function anonymousLogin(){
         contentType: 'application/json; charset=utf-8',
         data : JSON.stringify(postData)
     })
-    .fail(requestFail)
+    .fail(requestServiceFail('auth service'))
     .done(anonymousLoginDone);
 }
 
@@ -288,7 +288,7 @@ function purchaseTicket(documentId){
     }
     if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         $.getJSON( window.documentService + '/' + documentId + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-        .fail(requestFail)
+        .fail(requestServiceFail('document service'))
         .done(purchaseGetEventDone);
     }else{
         studentLogout('expired');
@@ -455,7 +455,7 @@ function locationMapInit(lat, lon){
                 contentType: 'application/json; charset=utf-8',
                 data : JSON.stringify(postData)
             })
-            .fail(requestFail)
+            .fail(requestServiceFail('location service'))
             .done(locationSaveDone(postData['location']['properties'].label));
         }else{
             studentLogout('expired');

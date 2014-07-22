@@ -104,6 +104,12 @@ function retrieveEventsFail(jqxhr, textStatus, errorThrown){
     }
 }
 
+var requestServiceFail = function (service){
+    return function(jqxhr, textStatus, errorThrown){
+        errorAlert('<strong>Error connecting to ' + service + '</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
+    };
+}
+
 function requestFail(jqxhr, textStatus, errorThrown){
     errorAlert('<strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
 }

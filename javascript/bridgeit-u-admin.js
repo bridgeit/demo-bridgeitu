@@ -159,7 +159,7 @@ function createEventSubmit(event){
                 contentType: 'application/json; charset=utf-8',
                 data : JSON.stringify(postData)
             })
-            .fail(requestFail)
+            .fail(requestServiceFail('document service'))
             .done(createEventDone(form.crtname.value));
         }
     }else{
@@ -183,7 +183,7 @@ var createEventDone = function(name){
 function editEvent(documentId){
     if(tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
         $.getJSON( window.documentService + '/' + documentId + '?access_token=' + sessionStorage.bridgeitUToken + '&results=one')
-        .fail(requestFail)
+        .fail(requestServiceFail('document service'))
         .done(editGetEventDone);
     }else{
         adminLogout('expired');
@@ -211,7 +211,7 @@ function editGetEventDone(data, textStatus, jqxhr){
                     contentType: 'application/json; charset=utf-8',
                     data : JSON.stringify(putData)
                 })
-                .fail(requestFail)
+                .fail(requestServiceFail('document service'))
                 .done(editEventDone(data._id));
             }
         }));
@@ -242,7 +242,7 @@ function deleteEvent(documentId){
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json'
             })
-            .fail(requestFail)
+            .fail(requestServiceFail('document service'))
             .done(deleteDone(documentId));
         }
     }else{
@@ -376,13 +376,13 @@ function storeNotification(eventName, pushSubject, lifeseconds)  {
         contentType: 'application/json; charset=utf-8',
         data : JSON.stringify(notification)
     })
-    .fail(requestFail);
+    .fail(requestServiceFail('document service'));
 }
 
 function notifyFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status === 401){
         // 401 unauthorized
-        errorAlert('<strong>Unauthorized</strong> to send event CRUD notifications: status <strong>' + jqxhr.status + '</strong>');
+        errorAlert('<strong>Unauthorized</strong> to send event notifications: status <strong>' + jqxhr.status + '</strong>');
     }else{
         requestFail(jqxhr, textStatus, errorThrown);
     }
