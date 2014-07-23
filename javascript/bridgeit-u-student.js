@@ -441,26 +441,59 @@ function locationMapInit(lat, lon){
         placeMapMarker();
 
         if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            var postData = {};
-            postData['label'] = 'BridgeIt U Student Location';
-            postData['location'] = {'geometry' : {}, 'properties' : {}};
-            postData['location']['geometry'].coordinates = [event.latLng.lng(),event.latLng.lat()];
-            postData['location']['geometry'].type = 'Point';
-            postData['location']['properties'].label = 'Lat: ' + event.latLng.lat() + ' Long: ' + event.latLng.lng();
-            postData['location']['properties'].timestamp = new Date().toISOString();
-            $.ajax({
-                url : window.locationsService + '?access_token=' + localStorage.bridgeitUToken,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(requestServiceFail('location service'))
-            .done(locationSaveDone(postData['location']['properties'].label));
+            // Check if user record exists in document service
+            if(!window.userRecord['_id']){
+                var postData = {};
+                // Ternary operator necessary in case user record does not exist in doc service
+                postData['_id'] = localStorage.bridgeitUUsername;
+                postData['type'] = 'u.student';
+                postData['location'] = '';
+                postData['tickets'] = [];
+                $.ajax({
+                    url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(requestFail)
+                .done(postUserDone(event));
+            }else{
+                saveLocation(event);
+            }
         }else{
             studentLogout('expired');
         }
     });
+}
+
+var postUserDone = function(event){
+    return function(data, textStatus, jqxhr){
+        if( jqxhr.status === 201){
+            saveLocation(event);
+        }else{
+            serviceRequestUnexpectedStatusAlert('Post User', jqxhr.status);
+        }
+    }
+}
+
+function saveLocation(event){
+    var postData = {};
+    postData['label'] = 'BridgeIt U Student Location';
+    postData['location'] = {'geometry' : {}, 'properties' : {}};
+    postData['location']['geometry'].coordinates = [event.latLng.lng(),event.latLng.lat()];
+    postData['location']['geometry'].type = 'Point';
+    postData['location']['properties'].label = 'Lat: ' + event.latLng.lat() + ' Long: ' + event.latLng.lng();
+    postData['location']['properties'].timestamp = new Date().toISOString();
+    $.ajax({
+        url : window.locationsService + '?access_token=' + localStorage.bridgeitUToken,
+        type: 'POST',
+        dataType : 'json',
+        contentType: 'application/json; charset=utf-8',
+        data : JSON.stringify(postData)
+    })
+    .fail(requestServiceFail('location service'))
+    .done(locationSaveDone(postData['location']['properties'].label));
 }
 
 function retrieveRegionsDone(data, textStatus, jqxhr){
