@@ -4,8 +4,6 @@ window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/student
 window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/noTicketOnCampusNotification';
 window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
 window.locationNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/locationNotification';
-window.onCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/onCampusNotification';
-window.customNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/customNotification';
 window.flowLookupObject = {1 : window.anonymousNotificationFlow,
                            2 : window.studentNotificationFlow,
                            3 : window.noTicketOnCampusNotificationFlow,
@@ -13,9 +11,8 @@ window.flowLookupObject = {1 : window.anonymousNotificationFlow,
                            5 : 'locationResidence',
                            6 : 'locationPerformingArtsCenter',
                            7 : 'locationStadium',
-                           8 : window.onCampusNotificationFlow,
-                           9 : 'locationOffCampus',
-                           10 : window.customNotificationFlow};
+                           8 : 'locationOnCampus',
+                           9 : 'locationOffCampus'};
 
 function initAdminPage() {
     bridgeit.useServices({
@@ -299,18 +296,19 @@ function notifyEvent(documentId){
                 postData['eventName'] = eventName;
                 postData['pushSubject'] = pushSubject;
                 // Single flow used for locations - post location property as parameter for locationNotificationFlow
-                if(flow == 'locationResidence'){
-                    postData['location'] = 'Residence';
+                if(form.ntfctnSlct.value >= 5 && form.ntfctnSlct.value <=9){
                     flow = window.locationNotificationFlow;
-                } else if(flow == 'locationPerformingArtsCenter'){
-                    postData['location'] = 'Performing Arts Center';
-                    flow = window.locationNotificationFlow;
-                } else if(flow == 'locationStadium'){
-                    postData['location'] = 'Stadium';
-                    flow = window.locationNotificationFlow;
-                } else if(flow == 'locationOffCampus'){
-                    postData['location'] = 'Off Campus';
-                    flow = window.locationNotificationFlow;
+                    if(form.ntfctnSlct.value == 5){
+                        postData['location'] = 'Residence';
+                    } else if(form.ntfctnSlct.value == 6){
+                        postData['location'] = 'Performing Arts Center';
+                    } else if(form.ntfctnSlct.value == 7){
+                        postData['location'] = 'Stadium';
+                    } else if(form.ntfctnSlct.value == 8){
+                        postData['location'] = 'On Campus';
+                    } else if(form.ntfctnSlct.value == 9){
+                        postData['location'] = 'Off Campus';
+                    }
                 }
                 $.ajax({
                     url : flow,
