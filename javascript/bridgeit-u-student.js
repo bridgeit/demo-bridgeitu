@@ -20,7 +20,6 @@ window.mapOptions = {
     styles: window.studentMapStyles
 };
 window.markers = [];
-window.center = null;
 
 function initIndexPage() {
     bridgeit.useServices({
@@ -115,6 +114,9 @@ function studentLogout(expired){
     $('#locationPanel').hide();
     showLoginNavbar();
     $('#welcome').html('');
+    // clear previous user notices
+    removeNoticesInfoClass();
+    $('#alertDiv').html('');
     if(expired){
         $('#loginModal').modal('show');
         loginErrorAlert('Session Expired');
@@ -483,7 +485,7 @@ var postUserDone = function(event){
             serviceRequestUnexpectedStatusAlert('Post User', jqxhr.status);
         }
     }
-}
+};
 
 function saveLocation(event){
     var postData = {};
