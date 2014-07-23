@@ -5,11 +5,19 @@ window.regionsService = 'http://dev.bridgeit.io/locate/bridgeit.u/regions';
 window.userRecord = {};
 // gmap location
 window.map = null;
+window.studentMapStyles = [
+    {
+        featureType: "poi",
+        elementType: "labels",
+        stylers: [{ visibility: "off" }]
+    }
+ ];
 window.mapOptions = {
     zoom: 15,
     maxZoom: 16,
     center: new google.maps.LatLng(30.2852191,-97.7324101),
-    mapTypeId: google.maps.MapTypeId.ROADMAP
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    styles: window.studentMapStyles
 };
 window.markers = [];
 window.center = null;
