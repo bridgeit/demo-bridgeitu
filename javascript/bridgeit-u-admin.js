@@ -287,7 +287,7 @@ function notifyEvent(documentId){
             var form = this;
             var eventName = window.events[documentId];
             var pushSubject = form.oldNtfctnText.value;
-            storeNotification(eventName, pushSubject, 20);
+            storeNotification(eventName, pushSubject, 5);
 
             if(validate(form)){
                 var flow = window.flowLookupObject[form.ntfctnSlct.value];
@@ -335,7 +335,7 @@ function notifySubmit(event){
         var form = this;
         var pushSubject = form.ntfctnText.value;
         var targetEvent = form.targetEvent.value;
-        storeNotification(targetEvent, pushSubject, 20);
+        storeNotification(targetEvent, pushSubject, 5);
 
         if(validate(form)){
             var flow = null;
