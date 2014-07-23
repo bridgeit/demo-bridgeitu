@@ -92,7 +92,7 @@ function displayNotification(item)  {
         return;
     }
     notifications[item.timestamp] = item;
-    infoAlert('<strong>' + item.eventName + '</strong> '+ item.pushSubject);
+    infoAlert('<strong>' + item.pushSubject + '</strong>');
 }
 
 function retrieveEventsFail(jqxhr, textStatus, errorThrown){
