@@ -200,6 +200,9 @@ function infoAlert(message){
         $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
     );
     addNoticesInfoClass();
+    // Popup for student page so student doesn't have to scroll to notices panel
+    $('#noticeDiv').html('<div class="alert alert-info"><small>' + message + '</small></div>');
+    $('#noticeModal').modal('show');
 }
 
 function warningAlert(message){
