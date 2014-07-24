@@ -273,12 +273,12 @@
 
 <footer class="text-center">This Bootstrap 3 dashboard layout is compliments of <a href="http://www.bootply.com/85850"><strong>Bootply.com</strong></a></footer>
 
-<div class="modal" id="evntNtfctnModal">
+<div class="modal" id="evntNtfctnModal" role="dialog" aria-hidden="true" aria-labelledby="notifyModalLabel">
     <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetForm('oldEvntNtfctnFrm');">×</button>
-            <h4 class="modal-title">Event Notification</h4>
+            <h4 id="notifyModalLabel" class="modal-title">Event Notification</h4>
           </div>
           <div class="modal-body">
               <form id="oldEvntNtfctnFrm" class="form form-vertical">
@@ -323,12 +323,12 @@
     </div><!-- /.modal-dalog -->
 </div><!-- /.modal -->
 
-<div class="modal" id="editModal">
+<div class="modal" id="editModal" role="dialog" aria-hidden="true" aria-labelledby="editModalLabel">
     <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetFormCSS(document.getElementById('edtEvntFrm'));">×</button>
-            <h4 class="modal-title">Edit Event</h4>
+            <h4 id="editModalLabel" class="modal-title">Edit Event</h4>
           </div>
           <div class="modal-body">
               <form id="edtEvntFrm" class="form form-vertical">
@@ -366,13 +366,13 @@
 </div><!-- /.modal -->
 
 <!--login modal-->
-<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true"
+<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="loginModalLabel"
      data-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
               <button id="loginCloseBttn" type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginBody();">×</button>
-              <h1 class="text-center">Login</h1>
+              <h1 id="loginModalLabel" class="text-center">Login</h1>
             </div>
             <div class="modal-body">
               <form id="loginModalForm" class="form col-md-12 center-block">
