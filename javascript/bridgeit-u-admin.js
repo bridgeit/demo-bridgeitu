@@ -287,7 +287,7 @@ function notifyEvent(documentId){
             var form = this;
             var eventName = window.events[documentId];
             var pushSubject = form.oldNtfctnText.value;
-            storeNotification(eventName, pushSubject, 5);
+//             storeNotification(eventName, pushSubject, 5);
 
             if(validate(form)){
                 var flow = window.flowLookupObject[form.ntfctnSlct.value];
@@ -295,6 +295,8 @@ function notifyEvent(documentId){
                 postData['access_token'] = sessionStorage.bridgeitUToken;
                 postData['eventName'] = eventName;
                 postData['pushSubject'] = pushSubject;
+                postData['expiry'] = (new Date()).getTime() + (5 * 1000);
+
                 // Single flow used for locations - post location property as parameter for locationNotificationFlow
                 if(form.ntfctnSlct.value >= 5 && form.ntfctnSlct.value <=9){
                     flow = window.locationNotificationFlow;
