@@ -347,7 +347,7 @@ function notifySubmit(event){
             var postData = {};
             postData['access_token'] = sessionStorage.bridgeitUToken;
             postData['pushSubject'] = pushSubject;
-            postData['expiry'] = now.getTime() + (5 * 1000);
+            postData['expiry'] = (new Date()).getTime() + (5 * 1000);
             postData['targetRole'] = form.targetRole.value;
             postData['targetEvent'] = targetEvent;
             postData['targetLctn'] = form.targetLctn.value;
