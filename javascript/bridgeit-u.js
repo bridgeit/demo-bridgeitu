@@ -57,7 +57,23 @@ function loginFail(jqxhr, textStatus, errorThrown){
 
 function registerPushUsernameGroup(username, token){
     bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
-    bridgeit.addPushListener(username, 'handlePush');
+    if ("anonymous" == username) {
+        bridgeit.addPushListener(username, 'handleAnonPush');
+    } else {
+        bridgeit.addPushListener(username, 'handlePush');
+    }
+}
+
+function handleAnonPush(){
+    console.log('BridgeIt U Anonymous Push Callback');
+    retrieveEvents();
+    // Push called when student Changes Location, retrieve updated user record
+    if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+        updateStudent();
+    }
+    getNotifications("anonymous", function (data) {
+        data.forEach(displayNotification);
+    });
 }
 
 function handlePush(){
@@ -67,16 +83,16 @@ function handlePush(){
     if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         updateStudent();
     }
-    getNotifications(function (data) {
+    getNotifications(localStorage.bridgeitUUsername, function (data) {
         data.forEach(displayNotification);
     });
 }
 
-function getNotifications(callback)  {
+function getNotifications(username, callback)  {
     var now = new Date();
     var query = {
         type: "notification",
-        username: localStorage.bridgeitUUsername,
+        username: username,
         expiry: { $gt: now.getTime() }
     };
     $.getJSON(window.documentService +
