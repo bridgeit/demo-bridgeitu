@@ -335,7 +335,7 @@ function notifySubmit(event){
         var form = this;
         var pushSubject = form.ntfctnText.value;
         var targetEvent = form.targetEvent.value;
-        storeNotification(targetEvent, pushSubject, 5);
+        //storeNotification(targetEvent, pushSubject, 5);
 
         if(validate(form)){
             var flow = null;
@@ -347,6 +347,7 @@ function notifySubmit(event){
             var postData = {};
             postData['access_token'] = sessionStorage.bridgeitUToken;
             postData['pushSubject'] = pushSubject;
+            postData['expiry'] = now.getTime() + (5 * 1000);
             postData['targetRole'] = form.targetRole.value;
             postData['targetEvent'] = targetEvent;
             postData['targetLctn'] = form.targetLctn.value;
