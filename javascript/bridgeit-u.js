@@ -76,6 +76,7 @@ function getNotifications(callback)  {
     var now = new Date();
     var query = {
         type: "notification",
+        username: localStorage.bridgeitUUsername,
         expiry: { $gt: now.getTime() }
     };
     $.getJSON(window.documentService +
