@@ -88,6 +88,13 @@ function handlePush(){
     });
 }
 
+function handlePushRegistration(event)  {
+    console.log('handlePushRegistration() called, registered=' + bridgeit.isRegistered());
+    if (bridgeit.isRegistered())  {
+        //document.getElementById('regBtn').style.display = 'none';
+    }
+}
+
 function getNotifications(username, callback)  {
     var now = new Date();
     var query = {
