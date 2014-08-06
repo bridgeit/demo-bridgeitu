@@ -78,9 +78,6 @@ function handleAnonPush(){
 
 function handlePush(){
     console.log('BridgeIt U Push Callback');
-console.log("aborting remaining handlePush");
-return;
-
     retrieveEvents();
     // Push called when student Changes Location, retrieve updated user record
     if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
