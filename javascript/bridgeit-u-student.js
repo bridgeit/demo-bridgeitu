@@ -54,6 +54,8 @@ function initIndexPage() {
     }else{
         studentLogout('expired');
     }
+
+    handlePush();
 }
 
 function anonymousLogin(){
