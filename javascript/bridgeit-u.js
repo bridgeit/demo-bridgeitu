@@ -100,7 +100,7 @@ function getNotifications(username, callback)  {
     var query = {
         type: "notification",
         username: username,
-        expiry: { $gt: now.getTime() }
+        expiry: { $gt: now.getTime() - (60 * 1000) }
     };
     $.getJSON(window.documentService +
             '?query=' + JSON.stringify(query) +
