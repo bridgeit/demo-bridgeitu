@@ -28,28 +28,28 @@ function initIndexPage() {
 
     $('#purchaseBttn').prop('disabled', true);
     $('#purchaseTcktFrm').submit(purchaseTicketSubmit);
-    $('#loginModalForm').submit(loginSubmit());
-    $('#logoutNavbar').click(logoutClick());
+    $('#loginModalForm').submit(controller.loginSubmit());
+    $('#logoutNavbar').click(controller.logoutClick());
     $('#registerModalContent').hide();
     $('#register').click(toggleLoginRegister);
     $('#registerModalForm').submit(registerSubmit);
     // Anonymous token for viewing events
-    if(tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
+    if(util.tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
         retrieveEvents();
-        registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
+        controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
     }else{
         anonymousLogin();
     }
     // No Student token
     if(localStorage.bridgeitUToken === undefined){
-        showLoginNavbar();
+        view.showLoginNavbar();
         $('#purchasePanel').hide();
         $('#ticketsPanel').hide();
         $('#locationPanel').hide();
     // Valid Student token - logged in
-    } else if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+    } else if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         studentLoggedIn();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
+        controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
     // Invalid Student token - log out
     }else{
         studentLogout('expired');
@@ -67,7 +67,7 @@ function anonymousLogin(){
         contentType: 'application/json; charset=utf-8',
         data : JSON.stringify(postData)
     })
-    .fail(requestServiceFail('auth service'))
+    .fail(view.requestServiceFail('auth service'))
     .done(anonymousLoginDone);
 }
 
@@ -76,9 +76,9 @@ function anonymousLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUAnonymousToken = data.access_token;
         localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
         retrieveEvents();
-        registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
+        controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
     }else{
-        serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
     }
 }
 
@@ -89,10 +89,10 @@ function studentLoginDone(data, textStatus, jqxhr){
         localStorage.bridgeitUToken = data.access_token;
         localStorage.bridgeitUTokenExpires = data.expires_in;
         localStorage.bridgeitUUsername = $('#userName').val();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
+        controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
         studentLoggedIn();
     }else{
-        serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
     }
 }
 
@@ -101,7 +101,7 @@ function studentLoggedIn(){
     $('#purchasePanel').show('slow');
     $('#ticketsPanel').show('slow');
     $('#locationPanel').show();
-    uiLoggedIn(localStorage.bridgeitUUsername);
+    view.loggedIn(localStorage.bridgeitUUsername);
     initializeStudent();
 }
 
@@ -112,14 +112,14 @@ function studentLogout(expired){
     $('#purchasePanel').hide();
     $('#ticketsPanel').hide();
     $('#locationPanel').hide();
-    showLoginNavbar();
-    $('#welcome').html('');
+    view.showLoginNavbar();
+    view.clearWelcomeSpan();
     // clear previous user notices
-    removeNoticesInfoClass();
+    view.removeNoticesInfoClass();
     $('#alertDiv').html('');
     if(expired){
         $('#loginModal').modal('show');
-        loginErrorAlert('Session Expired');
+        view.loginErrorAlert('Session Expired');
     }
 }
 
@@ -134,7 +134,7 @@ function registerSubmit(event){
     *  Also using form to create post data from form's elements
     */
     var form = this;
-    if(validate(form) && confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
+    if(util.validate(form) && util.confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
         var postData = { user: {username: form.regUserName.value,
                                 password: form.regPassWord.value,
                                 password_confirm: form.confirmPassWord.value} };
@@ -151,7 +151,7 @@ function registerSubmit(event){
 }
 
 function registerFail(jqxhr, textStatus, errorThrown){
-    registerErrorAlert(textStatus);
+    view.registerErrorAlert(textStatus);
 }
 
 function registerDone(data, textStatus, jqxhr){
@@ -161,28 +161,28 @@ function registerDone(data, textStatus, jqxhr){
         localStorage.bridgeitUToken = data.token.access_token;
         localStorage.bridgeitUTokenExpires = data.token.expires_in;
         localStorage.bridgeitUUsername = $('#regUserName').val();
-        registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
+        controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
         toggleLoginRegister();
         studentLoggedIn();
     }else{
-        serviceRequestUnexpectedStatusAlert('Register', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Register', jqxhr.status);
     }
 }
 
 function closeRegisterModal(){
     resetRegisterBody();
     toggleLoginRegister();
-    resetLoginBody();
+    view.resetLoginBody();
 }
 
 function resetRegisterBody(){
-    resetForm('registerModalForm');
+    view.resetForm('registerModalForm');
     $('#alertRegisterDiv').html('');
 }
 
 function retrieveEvents(){
     $.getJSON(window.documentService  + '?access_token=' + localStorage.bridgeitUAnonymousToken)
-    .fail(retrieveEventsFail)
+    .fail(view.retrieveEventsFail)
     .done(retrieveEventsDone);
 }
 
@@ -194,12 +194,12 @@ function retrieveEventsDone(data, textStatus, jqxhr){
             // Using Document Service to store users and notifications, this will skip them
             if(obj.type === undefined){
                 // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
-                window.events[obj._id] = obj.name;
+                model.events[obj._id] = obj.name;
                 evntLstDiv.append('<a href="#" class="list-group-item" onclick="purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
             }
         });
     }else{
-        serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
     }
 }
 
@@ -222,7 +222,7 @@ function initializeStudentDone(data, textStatus, jqxhr){
         setCurrentLocationText(data);
         retrieveLocation();
     }else{
-        serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
     }
 }
 
@@ -232,7 +232,7 @@ function updateStudentDone(data, textStatus, jqxhr){
         displayTickets();
         setCurrentLocationText(data);
     }else{
-        serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
     }
 }
 
@@ -253,7 +253,7 @@ function initializeStudentFail(jqxhr, textStatus, errorThrown){
         $('#crrntLctn').html('');
         locationMapInit();
     }else{
-        requestFail(jqxhr, textStatus, errorThrown);
+        view.requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
@@ -267,7 +267,7 @@ function retrieveLocationDone(data, textStatus, jqxhr){
     if( jqxhr.status === 200){
         locationMapInit(data['location']['geometry'].coordinates[1],data['location']['geometry'].coordinates[0]);
     }else{
-        serviceRequestUnexpectedStatusAlert('Retrieve Location', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Retrieve Location', jqxhr.status);
     }
 }
 
@@ -275,7 +275,7 @@ function retrieveLocationFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status === 404){
         // 404 means the list is empty
     }else{
-        requestFail(jqxhr, textStatus, errorThrown);
+        view.requestFail(jqxhr, textStatus, errorThrown);
     }
     locationMapInit();
 }
@@ -283,9 +283,9 @@ function retrieveLocationFail(jqxhr, textStatus, errorThrown){
 var locationSaveDone = function(location){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status === 201){
-            successAlert('<strong>' + location + '</strong> Location Saved');
+            view.successAlert('<strong>' + location + '</strong> Location Saved');
         }else{
-            serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
+            view.serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
         }
     };
 };
@@ -296,9 +296,9 @@ function purchaseTicket(documentId){
         $('#loginModal').modal('show');
         return;
     }
-    if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+    if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
         $.getJSON( window.documentService + '/' + documentId + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-        .fail(requestServiceFail('document service'))
+        .fail(view.requestServiceFail('document service'))
         .done(purchaseGetEventDone);
     }else{
         studentLogout('expired');
@@ -313,7 +313,7 @@ function purchaseGetEventDone(data, textStatus, jqxhr){
         document.getElementById('ticketName').value = data.name;
         document.getElementById('ticketDetails').value = data.details;
     }else{
-        serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
     }
 }
 
@@ -323,7 +323,7 @@ function purchaseTicketSubmit(event){
     *  Also using form to create json post data from form's elements
     */
     var form = this;
-    if(validate(form)){
+    if(util.validate(form)){
         var postData = {};
         postData['access_token'] = localStorage.bridgeitUToken;
         postData['eventname'] = form.ticketName.value;
@@ -356,23 +356,23 @@ function purchaseTicketSubmit(event){
 function ticketFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status === 401){
         // 401 unauthorized
-        errorAlert('<strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong>');
+        view.errorAlert('<strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong>');
     }else{
-        requestFail(jqxhr, textStatus, errorThrown);
+        view.requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 
 var purchaseTicketDone = function(ticketArray){
     return function(data, textStatus, jqxhr){
         if(jqxhr.status === 200){
-            successAlert('<strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.');
+            view.successAlert('<strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.');
             window.userRecord['tickets'] = window.userRecord['tickets'].concat(ticketArray);
             displayTickets();
             $('#purchaseTcktFrm')[0].reset();
             $('#purchasePanel').removeClass('panel-primary');
             $('#purchaseBttn').prop('disabled', true);
         }else{
-            serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
+            view.serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
         }
     }
 };
@@ -408,7 +408,7 @@ function cancelTicketPurchase(eventName){
 
 function ticketCancelDone(data, textStatus, jqxhr){
     if(jqxhr.status === 200){
-        successAlert('<strong>' + data.eventname + '</strong> ticket purchase cancelled.');
+        view.successAlert('<strong>' + data.eventname + '</strong> ticket purchase cancelled.');
         for(var i=0; i<window.userRecord['tickets'].length; i++){
             if(window.userRecord['tickets'][i].name === data.eventname){
                 window.userRecord['tickets'].splice(i,1);
@@ -417,17 +417,17 @@ function ticketCancelDone(data, textStatus, jqxhr){
         }
         displayTickets();
     }else{
-        serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
     }
 }
 
 function displayTickets(){
     var $evntTcktLst = $('#evntTcktLst');
     $evntTcktLst.html('');
-    for (var key in window.events) {
-       if (window.events.hasOwnProperty(key) ){
+    for (var key in model.events) {
+       if (model.events.hasOwnProperty(key) ){
            for (var i=0; i<window.userRecord.tickets.length; i++){
-               if(window.userRecord.tickets[i].name === window.events[key]){
+               if(window.userRecord.tickets[i].name === model.events[key]){
                    $evntTcktLst.append('<div class="list-group-item">' + window.userRecord.tickets[i].name + '<a title="Cancel Ticket Purchase" onclick="cancelTicketPurchase(\'' + window.userRecord.tickets[i].name + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a></div>');
                }
            }
@@ -450,7 +450,7 @@ function locationMapInit(lat, lon){
         window.map.setCenter(event.latLng);
         placeMapMarker();
 
-        if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+        if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             // Check if user record exists in document service
             if(!window.userRecord['_id']){
                 var postData = {};
@@ -466,7 +466,7 @@ function locationMapInit(lat, lon){
                     contentType: 'application/json; charset=utf-8',
                     data : JSON.stringify(postData)
                 })
-                .fail(requestFail)
+                .fail(view.requestFail)
                 .done(postUserDone(event));
             }else{
                 saveLocation(event);
@@ -482,7 +482,7 @@ var postUserDone = function(event){
         if( jqxhr.status === 201){
             saveLocation(event);
         }else{
-            serviceRequestUnexpectedStatusAlert('Post User', jqxhr.status);
+            view.serviceRequestUnexpectedStatusAlert('Post User', jqxhr.status);
         }
     }
 };
@@ -502,7 +502,7 @@ function saveLocation(event){
         contentType: 'application/json; charset=utf-8',
         data : JSON.stringify(postData)
     })
-    .fail(requestServiceFail('location service'))
+    .fail(view.requestServiceFail('location service'))
     .done(locationSaveDone(postData['location']['properties'].label));
 }
 
@@ -527,7 +527,7 @@ function retrieveRegionsDone(data, textStatus, jqxhr){
             });
         });
     }else{
-        serviceRequestUnexpectedStatusAlert('Retrieve Regions', jqxhr.status);
+        view.serviceRequestUnexpectedStatusAlert('Retrieve Regions', jqxhr.status);
     }
 }
 
@@ -535,7 +535,7 @@ function retrieveRegionsFail(jqxhr, textStatus, errorThrown){
     if(jqxhr.status === 404){
         // 404 means the list is empty
     }else{
-        requestFail(jqxhr, textStatus, errorThrown);
+        view.requestFail(jqxhr, textStatus, errorThrown);
     }
 }
 

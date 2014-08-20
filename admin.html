@@ -161,7 +161,7 @@
                                 <div class="form-group formGroupReducedMargin">
                                     <label for="andOr" class="col-sm-0 control-label"></label>
                                     <div class="col-sm-5">
-                                        <select id="andOr" name="andOr" class="form-control input-sm" onchange="changeAndOrLabels(this);">
+                                        <select id="andOr" name="andOr" class="form-control input-sm" onchange="adminView.changeAndOrLabels(this);">
                                             <option value="andFilter">"And" Filter ...</option>
                                             <option value="orFilter">"Or" Filter ...</option>
                                         </select>
@@ -277,7 +277,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetForm('oldEvntNtfctnFrm');">×</button>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="view.resetForm('oldEvntNtfctnFrm');">×</button>
             <h4 id="notifyModalLabel" class="modal-title">Event Notification</h4>
           </div>
           <div class="modal-body">
@@ -327,7 +327,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetFormCSS(document.getElementById('edtEvntFrm'));">×</button>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="view.resetFormCSS(document.getElementById('edtEvntFrm'));">×</button>
             <h4 id="editModalLabel" class="modal-title">Edit Event</h4>
           </div>
           <div class="modal-body">
@@ -371,7 +371,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-              <button id="loginCloseBttn" type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="resetLoginBody();">×</button>
+              <button id="loginCloseBttn" type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="view.resetLoginBody();">×</button>
               <h1 id="loginModalLabel" class="text-center">Login</h1>
             </div>
             <div class="modal-body">
@@ -393,7 +393,7 @@
             </div>
             <div class="modal-footer">
                 <div class="col-md-12">
-                    <button id="loginCancelBttn" class="btn" data-dismiss="modal" aria-hidden="true" onclick="resetLoginBody();">Cancel</button>
+                    <button id="loginCancelBttn" class="btn" data-dismiss="modal" aria-hidden="true" onclick="view.resetLoginBody();">Cancel</button>
                 </div>
             </div>
         </div>
@@ -405,7 +405,7 @@
 
 <script type='text/javascript'>
 
-    $(document).ready(initAdminPage);
+    $(document).ready(adminController.initAdminPage);
 
 </script>
 </body>

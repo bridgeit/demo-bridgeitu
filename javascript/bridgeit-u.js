@@ -1,239 +1,267 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.pushUri = 'http://dev.bridgeit.io/push';
-// Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
-window.events = {};
 
-function loginSubmit(isAdmin){
-    return function(event){
-        event.preventDefault();
-        /* form element used to generically validate form elements (could also serialize the form if necessary)
-        *  Also using form to create post data from form's elements
-        */
-        var form = this;
-        if(validate(form)){
-            // Avoid getting a token from anonymous credentials
-            if((isAdmin === undefined) && (form.userName.value === 'anonymous' && form.passWord.value === 'anonymous')){
-                loginErrorAlert('Invalid Credentials');
-                return;
-            }
-            var postData = {'username' : form.userName.value,
-                            'password' : form.passWord.value};
-            $.ajax({
-                url : window.authService,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(loginFail)
-            .done(isAdmin ? adminLoginDone : studentLoginDone);
-        }else{
-            //Form fields are invalid, remove any alerts related to authentication
-            $('#alertLoginDiv').html('');
+window.model = {
+
+    // Used to store event id/name to easily reference the name String to avoid encoding/decoding the String in javascript
+    events: {},
+
+    notifications: {},
+
+    handlePush: function(){
+        console.log('BridgeIt U Push Callback');
+        retrieveEvents();
+        // Push called when student Changes Location, retrieve updated user record
+        if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+            updateStudent();
         }
-    };
-}
+        model.getNotifications(function (data) {
+            data.forEach(model.displayNotification);
+        });
+    },
 
-function logoutClick(isAdmin){
-    return function(event){
-        event.preventDefault();
-        if(isAdmin){
-            adminLogout();
-        }else{
-            studentLogout();
+    getNotifications: function(callback)  {
+        var now = new Date();
+        var query = {
+            type: "notification",
+            expiry: { $gt: now.getTime() }
+        };
+        $.getJSON(window.documentService +
+                '?query=' + JSON.stringify(query) +
+                '&access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
+        .done(callback);
+    },
+
+    displayNotification: function(item)  {
+        //could also clean up based on expiry
+        if (model.notifications[item.timestamp])  {
+            return;
         }
-    };
-}
-
-function loginFail(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status === 401){
-        // 401 unauthorized
-        loginErrorAlert('Invalid Credentials');
-    }else{
-        requestFail(jqxhr, textStatus, errorThrown);
+        model.notifications[item.timestamp] = item;
+        view.infoAlert('<strong>' + item.pushSubject + '</strong>');
     }
-}
+};
 
-function registerPushUsernameGroup(username, token){
-    bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
-    bridgeit.addPushListener(username, 'handlePush');
-}
+window.view = {
 
-function handlePush(){
-    console.log('BridgeIt U Push Callback');
-    retrieveEvents();
-    // Push called when student Changes Location, retrieve updated user record
-    if(tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-        updateStudent();
-    }
-    getNotifications(function (data) {
-        data.forEach(displayNotification);
-    });
-}
+    loggedIn: function(username){
+        $('#welcome').html('Welcome: ' + username);
+        view.showLogoutNavbar();
+        view.resetLoginBody();
+        $('#loginModal').modal('hide');
+        // clear previous user notices
+        view.removeNoticesInfoClass();
+        $('#alertDiv').html('');
+    },
 
-function getNotifications(callback)  {
-    var now = new Date();
-    var query = {
-        type: "notification",
-        expiry: { $gt: now.getTime() }
-    };
-    $.getJSON(window.documentService +
-            '?query=' + JSON.stringify(query) +
-            '&access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
-    .done(callback);
-}
+    loginFail: function(jqxhr, textStatus, errorThrown){
+        if(jqxhr.status === 401){
+            // 401 unauthorized
+            view.loginErrorAlert('Invalid Credentials');
+        }else{
+            view.requestFail(jqxhr, textStatus, errorThrown);
+        }
+    },
 
-var notifications = {};
+    showLoginNavbar: function(){
+        $('#loginNavbar').show();
+        $('#logoutNavbar').hide();
+    },
 
-function displayNotification(item)  {
-    //could also clean up based on expiry
-    if (notifications[item.timestamp])  {
-        return;
-    }
-    notifications[item.timestamp] = item;
-    infoAlert('<strong>' + item.pushSubject + '</strong>');
-}
+    showLogoutNavbar: function(){
+        $('#loginNavbar').hide();
+        $('#logoutNavbar').show();
+    },
 
-function retrieveEventsFail(jqxhr, textStatus, errorThrown){
-    if(jqxhr.status === 404){
-        // 404 means the list is empty
+    resetLoginBody: function(){
+        view.resetForm('loginModalForm');
+        view.clearAlertLoginDiv();
+    },
+
+    clearWelcomeSpan: function(){
+        $('#welcome').html('');
+    },
+
+    clearAlertLoginDiv: function(){
+        $('#alertLoginDiv').html('');
+    },
+
+    clearEventList: function(){
         $('#evntLst').html('');
-    }else{
-        requestFail(jqxhr, textStatus, errorThrown);
-    }
-}
+    },
 
-var requestServiceFail = function (service){
-    return function(jqxhr, textStatus, errorThrown){
-        errorAlert('<strong>Error connecting to ' + service + '</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
-    };
-}
+    resetForm: function(formId){
+        var formToReset = document.getElementById(formId);
+        formToReset.reset();
+        view.resetFormCSS(formToReset);
+    },
 
-function requestFail(jqxhr, textStatus, errorThrown){
-    errorAlert('<strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
-}
+    resetFormCSS: function(form){
+        for(var i=0; i<form.length; i++){
+            if(form[i].tagName === 'INPUT' || form[i].tagName === 'TEXTAREA'){
+                $(form[i]).parent('div').removeClass('has-error');
+            }
+        }
+    },
 
-function serviceRequestUnexpectedStatusAlert(source, status){
-    warningAlert('<strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.');
-}
+    addNoticesInfoClass: function(){
+        $('#noticesPanel').addClass('panel-info');
+    },
 
-function validate(form){
-    /* Create and Edit forms have name and details fields.  Instead of
-     * referencing by id, validate form children to avoid duplicate id's.
-     */
-    var formValid = true;
-    for(var i=0; i<form.length; i++){
-        if( (form[i].tagName === 'INPUT' || form[i].tagName === 'TEXTAREA')
-                && form[i].value === ''){
-            $(form[i]).parent('div').addClass('has-error');
-            formValid = false;
+    removeNoticesInfoClass: function(){
+        $('#noticesPanel').removeClass('panel-info');
+    },
+
+    retrieveEventsFail: function(jqxhr, textStatus, errorThrown){
+        if(jqxhr.status === 404){
+            // 404 means the list is empty
+            view.clearEventList();
         }else{
-            $(form[i]).parent('div').removeClass('has-error');
+            view.requestFail(jqxhr, textStatus, errorThrown);
         }
-    }
-    return formValid;
-}
+    },
 
-function confirmPassword(password, confirm){
-    if(password === confirm){
-        return true;
-    }else{
-        registerErrorAlert('Passwords do not match.');
-        return false;
-    }
-}
-
-function uiLoggedIn(username){
-    $('#welcome').html('Welcome: ' + username);
-    showLogoutNavbar();
-    resetLoginBody();
-    $('#loginModal').modal('hide');
-    // clear previous user notices
-    removeNoticesInfoClass();
-    $('#alertDiv').html('');
-}
-
-function resetLoginBody(){
-    resetForm('loginModalForm');
-    $('#alertLoginDiv').html('');
-}
-
-function resetForm(formId){
-    var formToReset = document.getElementById(formId);
-    formToReset.reset();
-    resetFormCSS(formToReset);
-}
-
-function resetFormCSS(form){
-    for(var i=0; i<form.length; i++){
-        if(form[i].tagName === 'INPUT' || form[i].tagName === 'TEXTAREA'){
-            $(form[i]).parent('div').removeClass('has-error');
+    requestServiceFail: function(service){
+        return function(jqxhr, textStatus, errorThrown){
+            view.errorAlert('<strong>Error connecting to ' + service + '</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
         }
+    },
+
+    requestFail: function(jqxhr, textStatus, errorThrown){
+        view.errorAlert('<strong>Error connecting to the service</strong>: status <strong>' + jqxhr.status + '</strong> - please try again later.');
+    },
+
+    serviceRequestUnexpectedStatusAlert: function(source, status){
+        view.warningAlert('<strong>' + source + ' Warning</strong>: Unexpected status <strong>' + status + '</strong> returned.');
+    },
+
+    infoAlert: function(message){
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="view.removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+        );
+        view.addNoticesInfoClass();
+        // Popup for student page so student doesn't have to scroll to notices panel
+        $('#noticeDiv').html('<div class="alert alert-info"><small>' + message + '</small></div>');
+        $('#noticeModal').modal('show');
+    },
+
+    warningAlert: function(message){
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="view.removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+        );
+        view.addNoticesInfoClass();
+    },
+
+    successAlert: function(message){
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="view.removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+        );
+        view.addNoticesInfoClass();
+    },
+
+    errorAlert: function(message){
+        $('#alertDiv').prepend(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="view.removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
+        );
+        view.addNoticesInfoClass();
+    },
+
+    loginErrorAlert: function(message){
+        $('#alertLoginDiv').html(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
+        );
+    },
+
+    registerErrorAlert: function (message){
+        $('#alertRegisterDiv').html(
+            $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
+        );
     }
-}
 
-function showLoginNavbar(){
-    $('#loginNavbar').show();
-    $('#logoutNavbar').hide();
-}
+};
 
-function showLogoutNavbar(){
-    $('#loginNavbar').hide();
-    $('#logoutNavbar').show();
-}
+window.controller = {
 
-function addNoticesInfoClass(){
-    $('#noticesPanel').addClass('panel-info');
-}
+    loginSubmit: function(isAdmin){
+        return function(event){
+            event.preventDefault();
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create post data from form's elements
+            */
+            var form = this;
+            if(util.validate(form)){
+                // Avoid getting a token from anonymous credentials
+                if((isAdmin === undefined) && (form.userName.value === 'anonymous' && form.passWord.value === 'anonymous')){
+                    view.loginErrorAlert('Invalid Credentials');
+                    return;
+                }
+                var postData = {'username' : form.userName.value,
+                                'password' : form.passWord.value};
+                $.ajax({
+                    url : window.authService,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(view.loginFail)
+                .done(isAdmin ? adminController.adminLoginDone : studentLoginDone);
+            }else{
+                //Form fields are invalid, remove any alerts related to authentication
+                view.clearAlertLoginDiv();
+            }
+        };
+    },
 
-function removeNoticesInfoClass(){
-    $('#noticesPanel').removeClass('panel-info');
-}
+    logoutClick: function(isAdmin){
+        return function(event){
+            event.preventDefault();
+            if(isAdmin){
+                adminController.adminLogout();
+            }else{
+                studentLogout();
+            }
+        };
+    },
 
-function tokenValid(token, expires, type){
-    return (token !== undefined) && (parseInt(expires) > new Date().getTime());
-}
+    registerPushUsernameGroup: function(username, token){
+        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
+        bridgeit.addPushListener(username, 'model.handlePush');
+    }
 
-function infoAlert(message){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
-    // Popup for student page so student doesn't have to scroll to notices panel
-    $('#noticeDiv').html('<div class="alert alert-info"><small>' + message + '</small></div>');
-    $('#noticeModal').modal('show');
-}
+};
 
-function warningAlert(message){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-warning fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
-}
+window.util = {
 
-function successAlert(message){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
-}
+    validate: function(form){
+        /* Create and Edit forms have name and details fields.  Instead of
+         * referencing by id, validate form children to avoid duplicate id's.
+         */
+        var formValid = true;
+        for(var i=0; i<form.length; i++){
+            if( (form[i].tagName === 'INPUT' || form[i].tagName === 'TEXTAREA')
+                    && form[i].value === ''){
+                $(form[i]).parent('div').addClass('has-error');
+                formValid = false;
+            }else{
+                $(form[i]).parent('div').removeClass('has-error');
+            }
+        }
+        return formValid;
+    },
 
-function errorAlert(message){
-    $('#alertDiv').prepend(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" onclick="removeNoticesInfoClass();" aria-hidden="true">&times;</button><small>' + message + '</small></div>').hide().fadeIn('slow')
-    );
-    addNoticesInfoClass();
-}
+    confirmPassword: function(password, confirm){
+        if(password === confirm){
+            return true;
+        }else{
+            view.registerErrorAlert('Passwords do not match.');
+            return false;
+        }
+    },
 
-function loginErrorAlert(message){
-    $('#alertLoginDiv').html(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
-    );
-}
+    tokenValid: function (token, expires, type){
+        return (token !== undefined) && (parseInt(expires) > new Date().getTime());
+    }
 
-function registerErrorAlert(message){
-    $('#alertRegisterDiv').html(
-        $('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + message + '</div>').hide().fadeIn('fast')
-    );
-}
+};
