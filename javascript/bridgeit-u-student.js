@@ -55,7 +55,7 @@ function initIndexPage() {
         studentLogout('expired');
     }
 
-    handlePush();
+    model.handlePush();
 }
 
 function anonymousLogin(){

@@ -9,23 +9,35 @@ window.model = {
 
     notifications: {},
 
-    handlePush: function(){
-        console.log('BridgeIt U Push Callback');
+    handleAnonPush: function(){
+        console.log('BridgeIt U Anonymous Push Callback');
         retrieveEvents();
         // Push called when student Changes Location, retrieve updated user record
         if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             updateStudent();
         }
-        model.getNotifications(function (data) {
+        model.getNotifications("anonymous", function (data) {
             data.forEach(model.displayNotification);
         });
     },
 
-    getNotifications: function(callback)  {
+    handlePush: function(){
+        console.log('BridgeIt U Push Callback');
+        // Push called when student Changes Location, retrieve updated user record
+        if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+            updateStudent();
+        }
+        model.getNotifications(localStorage.bridgeitUUsername, function (data) {
+            data.forEach(model.displayNotification);
+        });
+    },
+
+    getNotifications: function(username, callback)  {
         var now = new Date();
         var query = {
             type: "notification",
-            expiry: { $gt: now.getTime() }
+            username: username,
+            expiry: { $gt: now.getTime() - (60 * 1000) }
         };
         $.getJSON(window.documentService +
                 '?query=' + JSON.stringify(query) +
@@ -227,7 +239,11 @@ window.controller = {
 
     registerPushUsernameGroup: function(username, token){
         bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
-        bridgeit.addPushListener(username, 'model.handlePush');
+        if ("anonymous" === username) {
+            bridgeit.addPushListener(username, 'model.handleAnonPush');
+        } else {
+            bridgeit.addPushListener(username, 'model.handlePush');
+        }
     }
 
 };

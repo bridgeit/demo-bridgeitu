@@ -302,7 +302,7 @@ window.adminController = {
             var form = this;
             var pushSubject = form.ntfctnText.value;
             var targetEvent = form.targetEvent.value;
-            adminModel.storeNotification(targetEvent, pushSubject, 5);
+//            adminModel.storeNotification(targetEvent, pushSubject, 5);
 
             if(util.validate(form)){
                 var flow = null;
@@ -314,6 +314,7 @@ window.adminController = {
                 var postData = {};
                 postData['access_token'] = sessionStorage.bridgeitUToken;
                 postData['pushSubject'] = pushSubject;
+                postData['expiry'] = (new Date()).getTime() + (5 * 1000);
                 postData['targetRole'] = form.targetRole.value;
                 postData['targetEvent'] = targetEvent;
                 postData['targetLctn'] = form.targetLctn.value;
@@ -354,7 +355,7 @@ window.adminController = {
                 var form = this;
                 var eventName = model.events[documentId];
                 var pushSubject = form.oldNtfctnText.value;
-                adminModel.storeNotification(eventName, pushSubject, 5);
+//                adminModel.storeNotification(eventName, pushSubject, 5);
 
                 if(util.validate(form)){
                     var flow = adminController.flowLookupObject[form.ntfctnSlct.value];
@@ -362,6 +363,7 @@ window.adminController = {
                     postData['access_token'] = sessionStorage.bridgeitUToken;
                     postData['eventName'] = eventName;
                     postData['pushSubject'] = pushSubject;
+                    postData['expiry'] = (new Date()).getTime() + (5 * 1000);
                     // Single flow used for locations - post location property as parameter for locationNotificationFlow
                     if(form.ntfctnSlct.value >= 5 && form.ntfctnSlct.value <=9){
                         flow = window.locationNotificationFlow;
