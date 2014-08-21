@@ -27,7 +27,7 @@ window.adminModel = {
             $targetEvent.find('option:gt(0)').remove();
             $.each(data, function(i, obj) {
                 // Using Document Service to store users, this will skip the user documents
-                if(obj.type === undefined){
+                if(obj.details !== undefined){
                     // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                     model.events[obj._id] = obj.name;
                     $evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="adminController.notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="adminController.deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="adminController.editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
@@ -238,7 +238,8 @@ window.adminController = {
         // Valid Admin token - logged in
         } else if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
             adminController.adminLoggedIn();
-            controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+            // TODO: If admin needs to receive push updates, uncomment line below and implement
+            //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
         // Invalid Admin token - log out
         }else{
             adminController.adminLogout('expired');
@@ -271,7 +272,8 @@ window.adminController = {
                 sessionStorage.bridgeitUToken = token;
                 sessionStorage.bridgeitUTokenExpires = expires_in;
                 sessionStorage.bridgeitUUsername = $('#userName').val();
-                controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+                // TODO: If admin needs to receive push updates, uncomment line below and implement
+                //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
                 adminController.adminLoggedIn();
             }else{
                 view.serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
