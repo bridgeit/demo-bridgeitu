@@ -212,6 +212,16 @@ window.adminView = {
 
 window.adminController = {
 
+    flowLookupObject: {1 : window.anonymousNotificationFlow,
+                       2 : window.studentNotificationFlow,
+                       3 : window.noTicketOnCampusNotificationFlow,
+                       4 : window.ticketHolderNotificationFlow,
+                       5 : 'locationResidence',
+                       6 : 'locationPerformingArtsCenter',
+                       7 : 'locationStadium',
+                       8 : 'locationOnCampus',
+                       9 : 'locationOffCampus'},
+
     initAdminPage: function() {
         bridgeit.useServices({
                 realm:"bridgeit.u",
@@ -333,16 +343,6 @@ window.adminController = {
             adminController.adminLogout('expired');
         }
     },
-
-    flowLookupObject: {1 : window.anonymousNotificationFlow,
-                       2 : window.studentNotificationFlow,
-                       3 : window.noTicketOnCampusNotificationFlow,
-                       4 : window.ticketHolderNotificationFlow,
-                       5 : 'locationResidence',
-                       6 : 'locationPerformingArtsCenter',
-                       7 : 'locationStadium',
-                       8 : 'locationOnCampus',
-                       9 : 'locationOffCampus'},
 
     notifyEvent: function (documentId){
         $('#ntfctnTextLabel').html(model.events[documentId]);

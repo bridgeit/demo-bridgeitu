@@ -265,7 +265,7 @@
         </div>
         <div id="registerModalContent" class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="closeRegisterModal();">×</button>
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="homeView.closeRegisterModal();">×</button>
               <h1 class="text-center">Register</h1>
             </div>
             <div class="modal-body">
@@ -289,7 +289,7 @@
             </div>
             <div class="modal-footer">
               <div class="col-md-12">
-              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="closeRegisterModal();">Cancel</button>
+              <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="homeView.closeRegisterModal();">Cancel</button>
             </div>
             </div>
         </div>
@@ -301,7 +301,7 @@
 
 <script type='text/javascript'>
 
-    $(document).ready(initIndexPage);
+    $(document).ready(homeController.initHomePage);
 
 </script>
 </body>

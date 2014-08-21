@@ -9,23 +9,11 @@ window.model = {
 
     notifications: {},
 
-    handleAnonPush: function(){
-        console.log('BridgeIt U Anonymous Push Callback');
-        retrieveEvents();
-        // Push called when student Changes Location, retrieve updated user record
-        if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            updateStudent();
-        }
-        model.getNotifications("anonymous", function (data) {
-            data.forEach(model.displayNotification);
-        });
-    },
-
     handlePush: function(){
         console.log('BridgeIt U Push Callback');
         // Push called when student Changes Location, retrieve updated user record
         if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            updateStudent();
+            homeModel.updateStudent();
         }
         model.getNotifications(localStorage.bridgeitUUsername, function (data) {
             data.forEach(model.displayNotification);
@@ -53,6 +41,7 @@ window.model = {
         model.notifications[item.timestamp] = item;
         view.infoAlert('<strong>' + item.pushSubject + '</strong>');
     }
+
 };
 
 window.view = {
@@ -218,7 +207,7 @@ window.controller = {
                     data : JSON.stringify(postData)
                 })
                 .fail(view.loginFail)
-                .done(isAdmin ? adminController.adminLoginDone : studentLoginDone);
+                .done(isAdmin ? adminController.adminLoginDone : homeController.studentLoginDone);
             }else{
                 //Form fields are invalid, remove any alerts related to authentication
                 view.clearAlertLoginDiv();
@@ -232,7 +221,7 @@ window.controller = {
             if(isAdmin){
                 adminController.adminLogout();
             }else{
-                studentLogout();
+                homeController.studentLogout();
             }
         };
     },
@@ -240,7 +229,7 @@ window.controller = {
     registerPushUsernameGroup: function(username, token){
         bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
         if ("anonymous" === username) {
-            bridgeit.addPushListener(username, 'model.handleAnonPush');
+            bridgeit.addPushListener(username, 'homeModel.handleAnonPush');
         } else {
             bridgeit.addPushListener(username, 'model.handlePush');
         }
