@@ -26,7 +26,7 @@ window.adminModel = {
             var $targetEvent = $('#targetEvent');
             $targetEvent.find('option:gt(0)').remove();
             $.each(data, function(i, obj) {
-                // Using Document Service to store users, this will skip the user documents
+                // Using Document Service to store users and notifications this will skip them
                 if(obj.details !== undefined){
                     // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                     model.events[obj._id] = obj.name;

@@ -33,10 +33,18 @@ window.model = {
         .done(callback);
     },
 
-    displayNotification: function(item)  {
+    displayNotification: function(item, index, array)  {
         //could also clean up based on expiry
         if (model.notifications[item.timestamp])  {
             return;
+        }
+        // Avoid duplicate messages
+        for (var key in model.notifications) {
+            if (model.notifications.hasOwnProperty(key) ){
+                if(model.notifications[key].pushSubject === item.pushSubject){
+                    return;
+                }
+            }
         }
         model.notifications[item.timestamp] = item;
         view.infoAlert('<strong>' + item.pushSubject + '</strong>');

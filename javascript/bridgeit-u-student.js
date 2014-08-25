@@ -36,7 +36,7 @@ window.homeModel = {
             evntLstDiv.html('');
             $.each(data, function(i, obj) {
                 // Using Document Service to store users and notifications, this will skip them
-                if(obj.type === undefined){
+                if(obj.details !== undefined){
                     // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
                     model.events[obj._id] = obj.name;
                     evntLstDiv.append('<a href="#" class="list-group-item" onclick="homeController.purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
