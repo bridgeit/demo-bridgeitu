@@ -353,6 +353,7 @@ window.homeController = {
             }else{
                 homeController.anonymousLogin();
             }
+            return;
         // Valid Student token - logged in
         } else if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             homeController.studentLoggedIn();
@@ -361,13 +362,8 @@ window.homeController = {
         }else{
             homeController.studentLogout('expired');
         }
-
-        if(localStorage.bridgeitUAnonymousToken){
-            homeModel.handleAnonPush();
-        }
-        if(localStorage.bridgeitUToken){
-            model.handlePush();
-        }
+        // Get student push notifications
+        model.handlePush();
     },
 
     anonymousLogin: function(){
