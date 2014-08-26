@@ -1,5 +1,5 @@
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
-window.anonymousNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonymousNotification';
+window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
 window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
 window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/noTicketOnCampusNotification';
 window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
@@ -193,7 +193,7 @@ window.adminView = {
 
 window.adminController = {
 
-    flowLookupObject: {1 : window.anonymousNotificationFlow,
+    flowLookupObject: {1 : window.anonAndStudentNotificationFlow,
                        2 : window.studentNotificationFlow,
                        3 : window.noTicketOnCampusNotificationFlow,
                        4 : window.ticketHolderNotificationFlow,
@@ -379,9 +379,9 @@ window.adminController = {
     notifyCRUDEvent: function(){
         var postData = {};
         postData['access_token'] = sessionStorage.bridgeitUToken;
-        postData['pushSubject'] = 'Event List Modified';
+        postData['pushSubject'] = window.crudEventPush;
         $.ajax({
-            url : window.anonymousNotificationFlow,
+            url : window.anonAndStudentNotificationFlow,
             type: 'POST',
             dataType : 'json',
             contentType: 'application/json; charset=utf-8',

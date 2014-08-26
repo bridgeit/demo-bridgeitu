@@ -25,7 +25,7 @@ window.homeModel = {
     userRecord: {},
 
     retrieveEvents: function(){
-        $.getJSON(window.documentService  + '?access_token=' + localStorage.bridgeitUAnonymousToken)
+        $.getJSON(window.documentService  + '?access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
         .fail(view.retrieveEventsFail)
         .done(homeModel.retrieveEventsDone);
     },
@@ -177,7 +177,6 @@ window.homeModel = {
 
     handleAnonPush: function(){
         console.log('BridgeIt U Anonymous Push Callback');
-        homeModel.retrieveEvents();
         model.getNotifications("anonymous", function (data) {
             data.forEach(model.displayNotification);
         });

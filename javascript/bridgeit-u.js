@@ -1,6 +1,7 @@
 window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
 window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
 window.pushUri = 'http://dev.bridgeit.io/push';
+window.crudEventPush = 'Event List Modified';
 
 window.model = {
 
@@ -12,9 +13,7 @@ window.model = {
     handlePush: function(){
         console.log('BridgeIt U Push Callback');
         // Push called when student Changes Location, retrieve updated user record
-        if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            homeModel.updateStudent();
-        }
+        homeModel.updateStudent();
         model.getNotifications(localStorage.bridgeitUUsername, function (data) {
             data.forEach(model.displayNotification);
         });
@@ -38,9 +37,15 @@ window.model = {
         if (model.notifications[item.timestamp])  {
             return;
         }
-        // Avoid duplicate messages
+        // Identify Event List CRUD notification
+        if(item.pushSubject === window.crudEventPush){
+            homeModel.retrieveEvents();
+            view.infoAlert('<strong>' + item.pushSubject + '</strong>');
+            return;
+        }
         for (var key in model.notifications) {
             if (model.notifications.hasOwnProperty(key) ){
+                // Avoid duplicate messages
                 if(model.notifications[key].pushSubject === item.pushSubject){
                     return;
                 }
