@@ -40,25 +40,6 @@ window.adminModel = {
         }
     },
 
-    storeNotification: function(eventName, pushSubject, lifeseconds)  {
-        var notification = {};
-        var now = new Date();
-        notification.type = "notification";
-        notification.timestamp = now.getTime();
-        notification.expiry = now.getTime() + (lifeseconds * 1000);
-        notification.eventName = eventName;
-        notification.pushSubject = pushSubject;
-        $.ajax({
-            url : window.documentService + '/' + '?access_token=' +
-                    sessionStorage.bridgeitUToken,
-            type: 'POST',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(notification)
-        })
-        .fail(view.requestServiceFail('document service'));
-    },
-
     createEvent: function(postData, name){
         $.ajax({
             url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
@@ -314,7 +295,6 @@ window.adminController = {
             var form = this;
             var pushSubject = form.ntfctnText.value;
             var targetEvent = form.targetEvent.value;
-//            adminModel.storeNotification(targetEvent, pushSubject, 5);
 
             if(util.validate(form)){
                 var flow = null;
@@ -357,7 +337,6 @@ window.adminController = {
                 var form = this;
                 var eventName = model.events[documentId];
                 var pushSubject = form.oldNtfctnText.value;
-//                adminModel.storeNotification(eventName, pushSubject, 5);
 
                 if(util.validate(form)){
                     var flow = adminController.flowLookupObject[form.ntfctnSlct.value];
