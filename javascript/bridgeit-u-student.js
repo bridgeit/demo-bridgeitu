@@ -177,6 +177,7 @@ window.homeModel = {
 
     handleAnonPush: function(){
         console.log('BridgeIt U Anonymous Push Callback');
+        homeModel.retrieveEvents();
         model.getNotifications("anonymous", function (data) {
             data.forEach(model.displayNotification);
         });

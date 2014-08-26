@@ -379,7 +379,8 @@ window.adminController = {
     notifyCRUDEvent: function(){
         var postData = {};
         postData['access_token'] = sessionStorage.bridgeitUToken;
-        postData['pushSubject'] = window.crudEventPush;
+        postData['pushSubject'] = 'Event List Modified';
+        postData['expiry'] = (new Date()).getTime() + (5 * 1000);
         $.ajax({
             url : window.anonAndStudentNotificationFlow,
             type: 'POST',
