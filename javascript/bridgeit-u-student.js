@@ -341,17 +341,18 @@ window.homeController = {
         $('#registerModalContent').hide();
         $('#register').click(homeView.toggleLoginRegister);
         $('#registerModalForm').submit(homeController.registerSubmit);
-        // Anonymous token for viewing events
-        if(util.tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
-            homeModel.retrieveEvents();
-            controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
-        }else{
-            homeController.anonymousLogin();
-        }
+
         // No Student token
         if(localStorage.bridgeitUToken === undefined){
             view.showLoginNavbar();
             homeView.hidePanels();
+            // Anonymous token for viewing events
+            if(util.tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
+                homeModel.retrieveEvents();
+                controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
+            }else{
+                homeController.anonymousLogin();
+            }
         // Valid Student token - logged in
         } else if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
             homeController.studentLoggedIn();
@@ -392,6 +393,9 @@ window.homeController = {
 
     studentLoginDone: function(data, textStatus, jqxhr){
         if( jqxhr.status === 200){
+            // Logout as anonymous
+            localStorage.removeItem('bridgeitUAnonymousToken');
+            localStorage.removeItem('bridgeitUAnonymousTokenExpires');
             // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
             // Login is required to retrieve a token so purchases can be made and notifications received
             localStorage.bridgeitUToken = data.access_token;
@@ -417,6 +421,13 @@ window.homeController = {
         localStorage.removeItem('bridgeitUToken');
         localStorage.removeItem('bridgeitUTokenExpires');
         localStorage.removeItem('bridgeitUUsername');
+        // TODO: reload() is called because we don't have the ability to unregister
+        // a push group listener yet (required when switching between anonymous
+        // and student users).  Revisit once this feature is added to bridgeit
+        location.reload();
+        // TODO: Uncomment when reload() is removed and add in unregister
+        // of student push group.  Make call to homeController.anonymousLogin();
+        /*
         homeView.hidePanels();
         view.showLoginNavbar();
         view.clearWelcomeSpan();
@@ -427,6 +438,7 @@ window.homeController = {
             $('#loginModal').modal('show');
             view.loginErrorAlert('Session Expired');
         }
+        */
     },
 
     registerSubmit: function(event){
