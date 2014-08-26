@@ -361,7 +361,12 @@ window.homeController = {
             homeController.studentLogout('expired');
         }
 
-        model.handlePush();
+        if(localStorage.bridgeitUAnonymousToken){
+            homeModel.handleAnonPush();
+        }
+        if(localStorage.bridgeitUToken){
+            model.handlePush();
+        }
     },
 
     anonymousLogin: function(){
