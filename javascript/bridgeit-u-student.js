@@ -403,7 +403,13 @@ window.homeController = {
             localStorage.bridgeitUTokenExpires = data.expires_in;
             localStorage.bridgeitUUsername = $('#userName').val();
             controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-            homeController.studentLoggedIn();
+            // TODO: reload() is called because we don't have the ability to unregister
+            // a push group listener yet (required when switching between anonymous
+            // and student users).  Revisit once this feature is added to bridgeit
+            location.reload();
+            // TODO: Uncomment when reload() is removed and add in unregister
+            // of anonymous push group.  Make call to homeController.anonymousLogin();
+            //homeController.studentLoggedIn();
         }else{
             view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
         }
