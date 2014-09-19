@@ -1,5 +1,4 @@
 window.quickUser = 'http://dev.bridgeit.io/authadmin/bridgeit.u/quickuser';
-window.ticketFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticket';
 window.locationsService = 'http://dev.bridgeit.io/locate/bridgeit.u/locations';
 window.regionsService = 'http://dev.bridgeit.io/locate/bridgeit.u/regions';
 
@@ -145,10 +144,10 @@ window.homeModel = {
         .done(homeView.locationSaveDone(postData['location']['properties'].label));
     },
 
-    purchaseTicketDone: function(ticketArray){
+    purchaseTicketDone: function(ticketArray, quantity, eventname){
         return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 200){
-                view.successAlert('<strong>' + data.quantity + ' ' + data.eventname + '</strong> ticket(s) purchased.');
+            if(jqxhr.status === 201){
+                view.successAlert('<strong>' + quantity + ' ' + eventname + '</strong> ticket(s) purchased.');
                 homeModel.userRecord['tickets'] = homeModel.userRecord['tickets'].concat(ticketArray);
                 homeView.displayTickets();
                 $('#purchaseTcktFrm')[0].reset();
@@ -160,18 +159,20 @@ window.homeModel = {
         }
     },
 
-    ticketCancelDone: function(data, textStatus, jqxhr){
-        if(jqxhr.status === 200){
-            view.successAlert('<strong>' + data.eventname + '</strong> ticket purchase cancelled.');
-            for(var i=0; i<homeModel.userRecord['tickets'].length; i++){
-                if(homeModel.userRecord['tickets'][i].name === data.eventname){
-                    homeModel.userRecord['tickets'].splice(i,1);
-                    break;
+    ticketCancelDone: function(eventname){
+        return function(data, textStatus, jqxhr){
+            if(jqxhr.status === 201){
+                view.successAlert('<strong>' + eventname + '</strong> ticket purchase cancelled.');
+                for(var i=0; i<homeModel.userRecord['tickets'].length; i++){
+                    if(homeModel.userRecord['tickets'][i].name === eventname){
+                        homeModel.userRecord['tickets'].splice(i,1);
+                        break;
+                    }
                 }
+                homeView.displayTickets();
+            }else{
+                view.serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
             }
-            homeView.displayTickets();
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
         }
     },
 
@@ -550,61 +551,50 @@ window.homeController = {
         var form = this;
         if(util.validate(form)){
             var postData = {};
-            postData['access_token'] = localStorage.bridgeitUToken;
-            postData['eventname'] = form.ticketName.value;
-            postData['quantity'] = form.ticketQuantity.value;
-            // Also submit user record to be updated in purchaseFlow
-            var submittedUserRecord = {};
             // Ternary operator necessary in case user record does not exist in doc service
-            submittedUserRecord['_id'] = (homeModel.userRecord['_id'] ? homeModel.userRecord['_id'] : localStorage.bridgeitUUsername);
-            submittedUserRecord['type'] = (homeModel.userRecord['type'] ? homeModel.userRecord['type'] : 'u.student');
-            submittedUserRecord['location'] = (homeModel.userRecord['location'] ? homeModel.userRecord['location'] : '');
-            submittedUserRecord['tickets'] = (homeModel.userRecord['tickets'] ? homeModel.userRecord['tickets'] : []);
+            postData['_id'] = (homeModel.userRecord['_id'] ? homeModel.userRecord['_id'] : localStorage.bridgeitUUsername);
+            postData['type'] = (homeModel.userRecord['type'] ? homeModel.userRecord['type'] : 'u.student');
+            postData['location'] = (homeModel.userRecord['location'] ? homeModel.userRecord['location'] : '');
+            postData['tickets'] = (homeModel.userRecord['tickets'] ? homeModel.userRecord['tickets'] : []);
             var ticketArray = [];
             for(var i=0; i<form.ticketQuantity.value; i++){
                 ticketArray.push({name:form.ticketName.value});
             }
-            submittedUserRecord['tickets'] = submittedUserRecord['tickets'].concat(ticketArray);
-            postData['user_record'] = submittedUserRecord;
+            postData['tickets'] = postData['tickets'].concat(ticketArray);
             $.ajax({
-                url : window.ticketFlow,
+                url : window.documentService + '/' + postData['_id'] + '?access_token=' + localStorage.bridgeitUToken,
                 type: 'POST',
                 dataType : 'json',
                 contentType: 'application/json; charset=utf-8',
                 data : JSON.stringify(postData)
             })
             .fail(homeView.ticketFail)
-            .done(homeModel.purchaseTicketDone(ticketArray));
+            .done(homeModel.purchaseTicketDone(ticketArray, form.ticketName.value, form.ticketQuantity.value));
         }
     },
 
     cancelTicketPurchase: function(eventName){
         var postData = {};
-        postData['access_token'] = localStorage.bridgeitUToken;
-        postData['eventname'] = eventName;
-        // Also submit user record to be updated in purchaseCancelFlow
-        var submittedUserRecord = {};
-        submittedUserRecord['_id'] = homeModel.userRecord['_id'];
-        submittedUserRecord['type'] = homeModel.userRecord['type'];
-        submittedUserRecord['location'] = homeModel.userRecord['location'];
+        postData['_id'] = homeModel.userRecord['_id'];
+        postData['type'] = homeModel.userRecord['type'];
+        postData['location'] = homeModel.userRecord['location'];
         // slice gives us a new array
-        submittedUserRecord['tickets'] = homeModel.userRecord['tickets'].slice(0);
-        for(var i=0; i<submittedUserRecord['tickets'].length; i++){
-            if(submittedUserRecord['tickets'][i].name === eventName){
-                submittedUserRecord['tickets'].splice(i,1);
+        postData['tickets'] = homeModel.userRecord['tickets'].slice(0);
+        for(var i=0; i<postData['tickets'].length; i++){
+            if(postData['tickets'][i].name === eventName){
+                postData['tickets'].splice(i,1);
                 break;
             }
         }
-        postData['user_record'] = submittedUserRecord;
         $.ajax({
-            url : window.ticketFlow,
+            url : window.documentService + '/' + postData['_id'] + '?access_token=' + localStorage.bridgeitUToken,
             type: 'POST',
             dataType : 'json',
             contentType: 'application/json; charset=utf-8',
             data : JSON.stringify(postData)
         })
         .fail(homeView.ticketFail)
-        .done(homeModel.ticketCancelDone);
+        .done(homeModel.ticketCancelDone(eventName));
     }
 
 };
