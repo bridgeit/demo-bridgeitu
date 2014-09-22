@@ -563,7 +563,7 @@ window.homeController = {
             postData['tickets'] = postData['tickets'].concat(ticketArray);
             $.ajax({
                 url : window.documentService + '/' + postData['_id'] + '?access_token=' + localStorage.bridgeitUToken,
-                type: 'POST',
+                type: 'PUT',
                 dataType : 'json',
                 contentType: 'application/json; charset=utf-8',
                 data : JSON.stringify(postData)
@@ -588,7 +588,7 @@ window.homeController = {
         }
         $.ajax({
             url : window.documentService + '/' + postData['_id'] + '?access_token=' + localStorage.bridgeitUToken,
-            type: 'POST',
+            type: 'PUT',
             dataType : 'json',
             contentType: 'application/json; charset=utf-8',
             data : JSON.stringify(postData)
