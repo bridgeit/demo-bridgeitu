@@ -1,11 +1,11 @@
-window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
-window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
-window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
 window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/noTicketOnCampusNotification';
 window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
 window.locationNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/locationNotification';
 window.andNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
 window.orNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifOr';
+window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
+window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
+window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
 
 window.adminModel = {
 
@@ -203,6 +203,10 @@ window.adminController = {
                        8 : 'locationOnCampus',
                        9 : 'locationOffCampus'},
 
+    enablePush: function(username, token){
+        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
+    },
+
     initAdminPage: function() {
         bridgeit.useServices({
                 realm:"bridgeit.u",
@@ -221,6 +225,7 @@ window.adminController = {
             adminController.adminLoggedIn();
             // TODO: If admin needs to receive push updates, uncomment line below and implement
             //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+            adminController.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
         // Invalid Admin token - log out
         }else{
             adminController.adminLogout('expired');
@@ -255,6 +260,7 @@ window.adminController = {
                 sessionStorage.bridgeitUUsername = $('#userName').val();
                 // TODO: If admin needs to receive push updates, uncomment line below and implement
                 //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+                adminController.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
                 adminController.adminLoggedIn();
             }else{
                 view.serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
@@ -377,6 +383,7 @@ window.adminController = {
     },
 
     notifyCRUDEvent: function(){
+        /*
         var postData = {};
         postData['access_token'] = sessionStorage.bridgeitUToken;
         postData['pushSubject'] = 'Event List Modified';
@@ -390,6 +397,8 @@ window.adminController = {
         })
         .fail(adminView.notifyFail)
         .done(adminView.notifyDone);
+        */
+        bridgeit.pushQuery('{"$or":[{"_id":"anonymous"},{"type":"u.student"}]}','{"_id": true}');
     },
 
     deleteEvent: function(documentId){
