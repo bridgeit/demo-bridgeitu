@@ -5,7 +5,7 @@ window.andNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
 window.orNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifOr';
 window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
 window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
-window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridgeit.u/token/permissions';
+window.authServicePermissions = 'http://dev.bridgeit.io/auth/Bridget U/realms/bridgeit.u/token/permissions';
 
 window.adminModel = {
 

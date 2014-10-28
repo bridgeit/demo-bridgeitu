@@ -1,5 +1,5 @@
-window.documentService = 'http://dev.bridgeit.io/docs/bridgeit.u/documents';
-window.authService = 'http://dev.bridgeit.io/auth/bridgeit.u/token/local';
+window.documentService = 'http://dev.bridgeit.io/docs/Bridget U/realms/bridgeit.u/documents';
+window.authService = 'http://dev.bridgeit.io/auth/Bridget U/realms/bridgeit.u/token';
 window.pushUri = 'http://dev.bridgeit.io/push';
 
 window.model = {
