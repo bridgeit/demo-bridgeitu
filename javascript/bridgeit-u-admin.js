@@ -5,7 +5,7 @@ window.andNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
 window.orNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifOr';
 window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
 window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
-window.authServicePermissions = 'http://dev.bridgeit.io/auth/Bridget U/realms/bridgeit.u/permission';
+window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/permission';
 
 window.adminModel = {
 
@@ -204,7 +204,7 @@ window.adminController = {
                        9 : 'locationOffCampus'},
 
     enablePush: function(username, token){
-        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'Bridget_U', realm: 'bridgeit.u'});
+        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'bridget_u', realm: 'bridgeit.u'});
     },
 
     initAdminPage: function() {

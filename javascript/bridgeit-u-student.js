@@ -1,6 +1,6 @@
-window.quickUser = 'http://dev.bridgeit.io/authadmin/Bridget U/realms/bridgeit.u/quickuser';
-window.locationsService = 'http://dev.bridgeit.io/locate/Bridget U/realms/bridgeit.u/locations';
-window.regionsService = 'http://dev.bridgeit.io/locate/Bridget U/realms/bridgeit.u/regions';
+window.quickUser = 'http://dev.bridgeit.io/authadmin/bridget_u/realms/bridgeit.u/quickuser';
+window.locationsService = 'http://dev.bridgeit.io/locate/bridget_u/realms/bridgeit.u/locations';
+window.regionsService = 'http://dev.bridgeit.io/locate/bridget_u/realms/bridgeit.u/regions';
 
 // gmap
 window.map = null;

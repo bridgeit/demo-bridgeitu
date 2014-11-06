@@ -1,5 +1,5 @@
-window.documentService = 'http://dev.bridgeit.io/docs/Bridget U/realms/bridgeit.u/documents';
-window.authService = 'http://dev.bridgeit.io/auth/Bridget U/realms/bridgeit.u/token';
+window.documentService = 'http://dev.bridgeit.io/docs/bridget_u/realms/bridgeit.u/documents';
+window.authService = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/token';
 window.pushUri = 'http://dev.bridgeit.io/push';
 
 window.model = {
@@ -234,7 +234,7 @@ window.controller = {
     },
 
     registerPushUsernameGroup: function(username, token){
-        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'Bridget_U', realm: 'bridgeit.u'});
+        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'bridget_u', realm: 'bridgeit.u'});
         if ("anonymous" === username) {
             bridgeit.addPushListener(username, 'homeModel.handleAnonPush');
         } else {
