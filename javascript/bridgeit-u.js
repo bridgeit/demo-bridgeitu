@@ -234,7 +234,7 @@ window.controller = {
     },
 
     registerPushUsernameGroup: function(username, token){
-        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
+        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'Bridget_U', realm: 'bridgeit.u'});
         if ("anonymous" === username) {
             bridgeit.addPushListener(username, 'homeModel.handleAnonPush');
         } else {

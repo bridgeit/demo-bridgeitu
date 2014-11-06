@@ -204,7 +204,7 @@ window.adminController = {
                        9 : 'locationOffCampus'},
 
     enablePush: function(username, token){
-        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token}});
+        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'Bridget_U', realm: 'bridgeit.u'});
     },
 
     initAdminPage: function() {
@@ -383,7 +383,6 @@ window.adminController = {
     },
 
     notifyCRUDEvent: function(){
-        /*
         var postData = {};
         postData['access_token'] = sessionStorage.bridgeitUToken;
         postData['pushSubject'] = 'Event List Modified';
@@ -397,8 +396,7 @@ window.adminController = {
         })
         .fail(adminView.notifyFail)
         .done(adminView.notifyDone);
-        */
-        bridgeit.pushQuery('{"$or":[{"_id":"anonymous"},{"type":"u.student"}]}','{"_id": true}');
+        //bridgeit.pushQuery('{"$or":[{"_id":"anonymous"},{"type":"u.student"}]}','{"_id": true}');
     },
 
     deleteEvent: function(documentId){
