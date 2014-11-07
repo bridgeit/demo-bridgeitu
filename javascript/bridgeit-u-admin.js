@@ -5,6 +5,7 @@ window.andNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
 window.orNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifOr';
 window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
 window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
+window.customNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/customNotification';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/permission';
 
 window.adminModel = {
@@ -214,6 +215,7 @@ window.adminController = {
 
         $('#crtEvntFrm').submit(adminController.createEventSubmit);
         $('#evntNtfctnFrm').submit(adminController.notifySubmit);
+        $('#cstmNtfctnFrm').submit(adminController.customNotifySubmit);
         $('#loginModalForm').submit(controller.loginSubmit('admin'));
         $('#logoutNavbar').click(controller.logoutClick('admin'));
         // No Admin token
@@ -319,6 +321,37 @@ window.adminController = {
 
                 $.ajax({
                     url : flow,
+                    type: 'POST',
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    data : JSON.stringify(postData)
+                })
+                .fail(adminView.notifyFail)
+                .done(adminView.notifyDone);
+            }
+        }else{
+            adminController.adminLogout('expired');
+        }
+    },
+
+    customNotifySubmit: function(event){
+        event.preventDefault();
+        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json post data from form's elements
+            */
+            var form = this;
+            var pushSubject = form.cstmNtfctnText.value;
+
+            if(util.validate(form)){
+                var postData = {};
+                postData['access_token'] = sessionStorage.bridgeitUToken;
+                postData['pushSubject'] = pushSubject;
+                postData['expiry'] = (new Date()).getTime() + (5 * 1000);
+                postData['targetEvent'] = 'Custom Notification';
+
+                $.ajax({
+                    url : window.customNotificationFlow,
                     type: 'POST',
                     dataType : 'json',
                     contentType: 'application/json; charset=utf-8',
