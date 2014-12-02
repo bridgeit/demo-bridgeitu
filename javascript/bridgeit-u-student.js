@@ -283,10 +283,14 @@ window.homeView = {
     },
 
     setCurrentLocationText: function(data){
+        console.log('setCurrentLocationText()');
         var lctnLabel = $('#crrntLctn');
         lctnLabel.html('');
         if(data.location){
             lctnLabel.html(data.location);
+        }
+        else{
+            console.log('no location provided');
         }
     },
 
