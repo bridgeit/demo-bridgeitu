@@ -25,7 +25,7 @@ window.model = {
             type: "notification",
             expiry: { $gt: now.getTime() - (60 * 1000) }
         };
-        $.getJSON(window.documentService + '/' + username +
+        $.getJSON(window.documentService +
                 '?query=' + JSON.stringify(query) +
                 '&access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
         .done(callback);
