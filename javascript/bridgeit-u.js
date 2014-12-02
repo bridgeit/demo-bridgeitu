@@ -23,10 +23,9 @@ window.model = {
         var now = new Date();
         var query = {
             type: "notification",
-            username: username,
             expiry: { $gt: now.getTime() - (60 * 1000) }
         };
-        $.getJSON(window.documentService +
+        $.getJSON(window.documentService + '/' + username +
                 '?query=' + JSON.stringify(query) +
                 '&access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
         .done(callback);
