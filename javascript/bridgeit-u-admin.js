@@ -1,4 +1,4 @@
-var codeService = 'http://dev.bridgeit.io/coden/bridgeit.u/';
+var codeService = 'http://dev.bridgeit.io/coden/bridget_u/realms/bridgeit.u/nodes/';
 window.noTicketOnCampusNotificationFlow = codeService + 'noTicketOnCampusNotification';
 window.ticketHolderNotificationFlow = codeService + 'ticketHolderNotification';
 window.locationNotificationFlow = codeService + 'locationNotification';
