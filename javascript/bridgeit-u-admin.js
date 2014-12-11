@@ -1,11 +1,12 @@
-window.noTicketOnCampusNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/noTicketOnCampusNotification';
-window.ticketHolderNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/ticketHolderNotification';
-window.locationNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/locationNotification';
-window.andNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifAnd';
-window.orNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/notifOr';
-window.studentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/studentNotification';
-window.anonAndStudentNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/anonAndStudentNotification';
-window.customNotificationFlow = 'http://dev.bridgeit.io/code/bridgeit.u/customNotification';
+var codeService = 'http://dev.bridgeit.io/coden/bridgeit.u/';
+window.noTicketOnCampusNotificationFlow = codeService + 'noTicketOnCampusNotification';
+window.ticketHolderNotificationFlow = codeService + 'ticketHolderNotification';
+window.locationNotificationFlow = codeService + 'locationNotification';
+window.andNotificationFlow = codeService + 'notifAnd';
+window.orNotificationFlow = codeService + 'notifOr';
+window.studentNotificationFlow = codeService + 'studentNotification';
+window.anonAndStudentNotificationFlow = codeService + 'anonAndStudentNotification';
+window.customNotificationFlow = codeService + 'customNotification';
 window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/permission';
 
 window.adminModel = {
