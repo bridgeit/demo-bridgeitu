@@ -7,6 +7,8 @@ window.pushGroupCountsUpdated = 'bridgeitCloudMessenger_countsUpdated';
 window.bridgeitMessengerCountDoc = 'bridgeitMessengerCountDoc';
 window.bridgeitMessengerMessageDoc = 'bridgeitMessengerMessage';
 
+bridgeit.goBridgeItURL = "cloud-messenger.html";
+
 
 window.model = {
 
