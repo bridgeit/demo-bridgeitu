@@ -1,5 +1,5 @@
 window.quickUser = 'http://dev.bridgeit.io/authadmin/bridget_u/realms/bridgeit.u/quickuser';
-window.userMessageResponseFlow = window.codeService + 'userMessageResponse';
+window.userMessageResponseFlow = window.codeService + 'richresponse?accept=';
 
 window.homeModel = {
 
@@ -26,52 +26,17 @@ window.homeModel = {
     },
 
     respondToMessage: function(response){
-    	model.fetchMessageCounts(
-    		function(json){
-    			$.ajax({
-		            url : window.documentService + window.bridgeitMessengerCountDoc + 
-						'?access_token=' + localStorage.bridgeitUToken,
-		            type: 'POST',
-		            dataType : 'json',
-		            contentType: 'application/json; charset=utf-8',
-		            data : JSON.stringify({
-		            	accepted: json.accepted + (response ? 1 : 0),
-		            	rejected: json.rejected + (response ? 0 : 1)
-		            })
-		        })
-		        .fail(function(error){
-		        	console.log('updating counts failed: ' + error);
-		        })
-		        .done(function(){
-		        	bridgeit.push( window.pushGroupCountsUpdated);
-		        	console.log('successfully updated counts');
-		        	bridgeit.push(window.pushGroupCountsUpdated);
-		        });
-    		}, 
-    		function(){
-    			console.log('fetching counts failed');
-    			$.ajax({
-		            url : window.documentService + window.bridgeitMessengerCountDoc + 
-						'?access_token=' + localStorage.bridgeitUToken,
-		            type: 'POST',
-		            dataType : 'json',
-		            contentType: 'application/json; charset=utf-8',
-		            data : JSON.stringify({
-		            	accepted: (response ? 1 : 0),
-		            	rejected: (response ? 0 : 1)
-		            })
-		        })
-		        .fail(function(error){
-		        	console.log('updating counts failed: ' + error);
-		        })
-		        .done(function(){
-		        	bridgeit.push( window.pushGroupCountsUpdated);
-		        	console.log('successfully updated counts');
-		        	bridgeit.push(window.pushGroupCountsUpdated);
-		        });
-    		}
-    	);
-    	
+
+    	$.ajax({
+            url : window.userMessageResponseFlow + response + '?access_token=' + localStorage.bridgeitUToken,
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8'
+        }).then(function(){
+        	console.log('successfully updated counts');
+        }).fail(function(error){
+        	console.log('updating counts failed: ' + error);
+        });
+        
 	}
 
 	
