@@ -14,12 +14,16 @@ window.homeModel = {
         $.getJSON(window.documentService + window.bridgeitMessengerMessageDoc + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
         .done(
         	function(json){
-        		$('#messageSubject').html(json.subject);
-        		$('#messageBody').html(json.body);
-        		var updated = new Date();
-        		updated.setTime(parseInt(json.updated));
-        		$('#messageUpdated').html(updated.toLocaleTimeString());
-        		$('#messageModal').modal();
+        		//show popup if message is less than a minute old
+        		if( new Date().getTime() - json.updated < (60*1000)){
+        			$('#messageSubject').html(json.subject);
+	        		$('#messageBody').html(json.body);
+	        		var updated = new Date();
+	        		updated.setTime(parseInt(json.updated));
+	        		$('#messageUpdated').html(updated.toLocaleTimeString());
+	        		$('#messageModal').modal();
+        		}
+        		
         	}
         )
         .fail(
@@ -105,6 +109,7 @@ window.homeController = {
 		}else{
 			homeController.userLogout('expired');
 		}
+		homeModel.newMessagePushCallback();
 	},
 
 	userLoginDone: function(data, textStatus, jqxhr){
