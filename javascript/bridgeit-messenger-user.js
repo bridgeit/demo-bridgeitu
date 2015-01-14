@@ -5,6 +5,10 @@ window.homeModel = {
 
 	userRecord: {},
 
+	cloudPushRegisteredCallback: function(){
+		console.log('cloud push successfully registered');
+	},
+
 	newMessagePushCallback: function(){
         console.log('BridgeIt Cloud Messenger New Message Push Callback');
         $.getJSON(window.documentService + window.bridgeitMessengerMessageDoc + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
