@@ -75,7 +75,7 @@ window.adminView = {
 
 	pushMessageDone: function(){
 		view.infoAlert('Message sent.');
-		view.resetForm('sendMessageFrm');
+		//view.resetForm('sendMessageFrm');
 	},	
 
 	displayMessageCounts: function(json){
@@ -185,7 +185,7 @@ window.adminController = {
 				bridgeit.push( window.pushGroupNewMessage, 
 				{
 					'subject': form.messageSubject.value, 
-					'message': form.messageBody.value
+					'detail': form.messageBody.value
 				});
 				adminView.pushMessageDone();
 			})
