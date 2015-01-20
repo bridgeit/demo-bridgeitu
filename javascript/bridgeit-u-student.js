@@ -405,7 +405,7 @@ window.homeController = {
             // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
             // Login is required to retrieve a token so purchases can be made and notifications received
             localStorage.bridgeitUToken = data.access_token;
-            localStorage.bridgeitUTokenExpires = data.expires_in;
+            localStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
             localStorage.bridgeitUUsername = $('#userName').val();
             controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
             // TODO: reload() is called because we don't have the ability to unregister
@@ -481,7 +481,7 @@ window.homeController = {
             // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
             // Login is required to retrieve a token so purchases can be made and notifications received
             localStorage.bridgeitUToken = data.token.access_token;
-            localStorage.bridgeitUTokenExpires = data.token.expires_in;
+            localStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
             localStorage.bridgeitUUsername = $('#regUserName').val();
             controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
             homeView.toggleLoginRegister();
