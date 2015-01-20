@@ -259,7 +259,7 @@ window.adminController = {
         return function(data, textStatus, jqxhr){
             if(jqxhr.status === 200){
                 sessionStorage.bridgeitUToken = token;
-                sessionStorage.bridgeitUTokenExpires = expires_in;
+                sessionStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(expires_in) - 500;
                 sessionStorage.bridgeitUUsername = $('#userName').val();
                 // TODO: If admin needs to receive push updates, uncomment line below and implement
                 //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
