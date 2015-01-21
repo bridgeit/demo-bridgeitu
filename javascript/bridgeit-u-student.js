@@ -391,7 +391,7 @@ window.homeController = {
     anonymousLoginDone: function(data, textStatus, jqxhr){
         if( jqxhr.status === 200){
             localStorage.bridgeitUAnonymousToken = data.access_token;
-            localStorage.bridgeitUAnonymousTokenExpires = data.expires_in;
+            localStorage.bridgeitUAnonymousTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
             homeModel.retrieveEvents();
             controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
         }else{
