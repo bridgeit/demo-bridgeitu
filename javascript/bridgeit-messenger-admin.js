@@ -143,7 +143,7 @@ window.adminController = {
 		return function(data, textStatus, jqxhr){
 			if(jqxhr.status === 200){
 				sessionStorage.bridgeitUToken = token;
-				sessionStorage.bridgeitUTokenExpires = expires_in;
+				sessionStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(expires_in) - 500;
 				sessionStorage.bridgeitUUsername = $('#userName').val();
 				controller.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
 				adminController.adminLoggedIn();
