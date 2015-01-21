@@ -116,7 +116,7 @@ window.homeController = {
 		if( jqxhr.status === 200){
 			// Login is required to retrieve a token so purchases can be made and notifications received
 			localStorage.bridgeitUToken = data.access_token;
-			localStorage.bridgeitUTokenExpires = data.expires_in;
+			localStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
 			localStorage.bridgeitUUsername = $('#userName').val();
 			homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
 			location.reload();
