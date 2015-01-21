@@ -13,7 +13,8 @@ window.adminModel = {
 
     retrieveEventsAdmin: function(){
         if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
-            $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken)
+            $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken +
+                "&query=%7B%22details%22%3A%7B%22%24exists%22%3Atrue%7D%7D")
             .fail(view.retrieveEventsFail)
             .done(adminModel.adminRetrieveEventsDone);
         }else{
