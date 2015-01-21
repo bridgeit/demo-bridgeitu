@@ -24,7 +24,9 @@ window.homeModel = {
     userRecord: {},
 
     retrieveEvents: function(){
-        $.getJSON(window.documentService  + '?access_token=' + (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken))
+        $.getJSON(window.documentService  + '?access_token=' + 
+            (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken)+
+            "&query=%7B%22details%22%3A%7B%22%24exists%22%3Atrue%7D%7D")
         .fail(view.retrieveEventsFail)
         .done(homeModel.retrieveEventsDone);
     },
