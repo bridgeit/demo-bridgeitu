@@ -1,118 +1,111 @@
-var codeService = 'http://dev.bridgeit.io/coden/bridget_u/realms/bridgeit.u/nodes/';
-window.noTicketOnCampusNotificationFlow = codeService + 'noTicketOnCampusNotification';
-window.ticketHolderNotificationFlow = codeService + 'ticketHolderNotification';
-window.locationNotificationFlow = codeService + 'locationNotification';
-window.andNotificationFlow = codeService + 'notifAnd';
-window.orNotificationFlow = codeService + 'notifOr';
-window.studentNotificationFlow = codeService + 'studentNotification';
-window.anonAndStudentNotificationFlow = codeService + 'anonAndStudentNotification';
-window.customNotificationFlow = codeService + 'customNotification';
-window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/permission';
+window.noTicketOnCampusNotificationFlow = 'noTicketOnCampusNotification';
+window.ticketHolderNotificationFlow = 'ticketHolderNotification';
+window.locationNotificationFlow = 'locationNotification';
+window.andNotificationFlow = 'notifAnd';
+window.orNotificationFlow = 'notifOr';
+window.studentNotificationFlow = 'studentNotification';
+window.anonAndStudentNotificationFlow = 'anonAndStudentNotification';
+window.customNotificationFlow = 'customNotification';
+
+bridgeit.goBridgeItURL = "admin.html";
 
 window.adminModel = {
 
     retrieveEventsAdmin: function(){
+<<<<<<< HEAD
+        if(bridgeit.services.auth.isLoggedIn()){
+            bridgeit.services.documents.findDocuments({
+                query: {
+                    details:{$exists: true}
+                }
+            })
+            .then(adminModel.adminRetrieveEventsDone)['catch'](view.retrieveEventsFail);
+=======
         if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
             $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken +
                 "&query=%7B%22details%22%3A%7B%22%24exists%22%3Atrue%7D%7D")
             .fail(view.retrieveEventsFail)
             .done(adminModel.adminRetrieveEventsDone);
+>>>>>>> FETCH_HEAD
         }else{
             adminController.adminLogout('expired');
         }
     },
 
-    adminRetrieveEventsDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            var $evntLstDiv = $('#evntLst');
-            $evntLstDiv.html('');
-            var $targetEvent = $('#targetEvent');
-            $targetEvent.find('option:gt(0)').remove();
-            $.each(data, function(i, obj) {
-                // Using Document Service to store users and notifications this will skip them
-                if(obj.details !== undefined){
-                    // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
-                    model.events[obj._id] = obj.name;
-                    $evntLstDiv.append('<div class="list-group-item"><a title="Send Event Notification" data-toggle="modal" href="#evntNtfctnModal" onclick="adminController.notifyEvent(\'' + obj._id + '\');"><span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span></a>' + obj.name + '<a title="Delete Event" onclick="adminController.deleteEvent(\'' + obj._id + '\');" class="pull-right"><span style="margin-left: 10px;" class="glyphicon glyphicon-remove-circle"></span></a><a title="Edit Event" data-toggle="modal" href="#editModal" onclick="adminController.editEvent(\'' + obj._id + '\');" class="pull-right"><span class="glyphicon glyphicon-edit"></span></a></div>');
-                    $('<option>').val(obj.name).text(obj.name).appendTo($targetEvent);
-                    $('<option>').val('!' + obj.name).text('Not - ' + obj.name).appendTo($targetEvent);
-                }
-            });
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
-        }
+    adminRetrieveEventsDone: function(data){
+        var $evntLstDiv = $('#evntLst');
+        $evntLstDiv.html('');
+        var $targetEvent = $('#targetEvent');
+        $targetEvent.find('option:gt(0)').remove();
+        $.each(data, function(i, obj) {
+            // Using Document Service to store users and notifications this will skip them
+            if(obj.details !== undefined){
+                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
+                model.events[obj._id] = obj.name;
+                $evntLstDiv.append(
+                '<div class="list-group-item">'+
+                    '<a title="Send Event Notification" data-toggle="modal" ' +
+                        'href="#evntNtfctnModal" ' +
+                        'onclick="adminController.notifyEvent(\'' + obj._id + '\');">' + 
+                        '<span style="margin-right: 10px;" class="glyphicon glyphicon-bullhorn"></span>' +
+                    '</a>' + obj.name + 
+                    '<a title="Delete Event" ' +
+                        'onclick="adminController.deleteEvent(\'' + obj._id + '\');" ' +
+                        'class="pull-right"><span style="margin-left: 10px;" ' +
+                        'class="glyphicon glyphicon-remove-circle"></span>' + 
+                    '</a>' +
+                    '<a title="Edit Event" data-toggle="modal" href="#editModal" ' +
+                        'onclick="adminController.editEvent(\'' + obj._id + '\');" ' +
+                        'class="pull-right"><span class="glyphicon glyphicon-edit"></span>' +
+                    '</a></div>');
+                $('<option>').val(obj.name).text(obj.name).appendTo($targetEvent);
+                $('<option>').val('!' + obj.name).text('Not - ' + obj.name).appendTo($targetEvent);
+            }
+        });
     },
 
     createEvent: function(postData, name){
-        $.ajax({
-            url : window.documentService + '?access_token=' + sessionStorage.bridgeitUToken,
-            type: 'POST',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(postData)
-        })
-        .fail(view.requestServiceFail('document service'))
-        .done(adminModel.createEventDone(name));
+        bridgeit.services.documents.createDocument({
+            document: postData
+        }).then(adminModel.createEventDone(name))['catch'](view.requestServiceFail('document service'));
     },
 
     createEventDone: function(name){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 201){
-                view.successAlert('<strong>' + name + '</strong> Event Created');
-                adminView.resetCreateEventForm();
-                adminModel.retrieveEventsAdmin();
-                adminController.notifyCRUDEvent();
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Create Event', jqxhr.status);
-            }
+        return function(data){
+            view.successAlert('<strong>' + name + '</strong> Event Created');
+            adminView.resetCreateEventForm();
+            adminModel.retrieveEventsAdmin();
+            adminController.notifyCRUDEvent();
         };
     },
 
     deleteEvent: function(documentId){
-        $.ajax({
-            url : window.documentService + '/' + documentId +  '?access_token=' + sessionStorage.bridgeitUToken,
-            type: 'DELETE',
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json'
-        })
-        .fail(view.requestServiceFail('document service'))
-        .done(adminModel.deleteDone(documentId));
+        bridgeit.services.documents.deleteDocument({
+            id: documentId
+        }).then(adminModel.deleteDone(documentId))['catch'](view.requestServiceFail('document service'));
     },
 
     deleteDone: function(documentId){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 204){
-                view.successAlert('<strong>' + model.events[documentId] + '</strong> Event Deleted');
-                adminModel.retrieveEventsAdmin();
-                adminController.notifyCRUDEvent();
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Delete Event', jqxhr.status);
-            }
+        return function(data){
+            view.successAlert('<strong>' + model.events[documentId] + '</strong> Event Deleted');
+            adminModel.retrieveEventsAdmin();
+            adminController.notifyCRUDEvent();
         };
     },
 
     editEvent: function(putData, documentId){
-        $.ajax({
-            url : window.documentService + '/' + documentId + '?access_token=' + sessionStorage.bridgeitUToken,
-            type: 'PUT',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(putData)
-        })
-        .fail(view.requestServiceFail('document service'))
-        .done(adminModel.editEventDone(documentId));
+        bridgeit.services.documents.updateDocument({
+            id: documentId,
+            document: putData
+        }).then(adminModel.editEventDone(documentId))['catch'](view.requestServiceFail('document service'));
     },
 
     editEventDone: function(documentId){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 201){
-                view.successAlert('<strong>' + model.events[documentId] + '</strong> Event Edited');
-                adminView.hideEditModal();
-                adminModel.retrieveEventsAdmin();
-                adminController.notifyCRUDEvent();
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Edit Event', jqxhr.status);
-            }
+        return function(data){
+            view.successAlert('<strong>' + model.events[documentId] + '</strong> Event Edited');
+            adminView.hideEditModal();
+            adminModel.retrieveEventsAdmin();
+            adminController.notifyCRUDEvent();
         };
     }
 };
@@ -143,13 +136,8 @@ window.adminView = {
         adminView.resetCreateEventForm();
     },
 
-    adminPermissionFail: function(jqxhr, textStatus, errorThrown){
-        if(jqxhr.status === 403){
-            // 403 permissionNotGranted
-            view.loginErrorAlert('Invalid Login - you are not an administrator');
-        }else{
-            view.requestFail(jqxhr, textStatus, errorThrown);
-        }
+    adminPermissionFail: function(error){
+        view.loginErrorAlert('Invalid Login - you are not an administrator');
     },
 
     hideEditModal: function(){
@@ -169,27 +157,18 @@ window.adminView = {
         $('#crtEvntFrm')[0].reset();
     },
 
-    notifyFail: function(jqxhr, textStatus, errorThrown){
-        if(jqxhr.status === 401){
-            // 401 unauthorized
-            view.errorAlert('<strong>Unauthorized</strong> to send event notifications: status <strong>' + jqxhr.status + '</strong>');
-        }else{
-            view.requestFail(jqxhr, textStatus, errorThrown);
-        }
+    notifyFail: function(error){
+        view.errorAlert('<strong>Error: </strong> to send event notifications: status <strong>' + error + '</strong>');
     },
 
-    notifyDone: function(data, textStatus, jqxhr){
-        if(jqxhr.status === 200){
-            if(data.pushSubject){
-                view.infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
-            }else{
-                view.infoAlert('<strong>Custom</strong> notification sent.');
-            }
-            view.resetForm('oldEvntNtfctnFrm');
-            adminView.hideEventNotificationModal();
+    notifyDone: function(data){
+        if(data && data.pushSubject){
+            view.infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
         }else{
-            view.serviceRequestUnexpectedStatusAlert('Notify', jqxhr.status);
+            view.infoAlert('<strong>Custom</strong> notification sent.');
         }
+        view.resetForm('oldEvntNtfctnFrm');
+        adminView.hideEventNotificationModal();
     }
 
 };
@@ -206,56 +185,60 @@ window.adminController = {
                        8 : 'locationOnCampus',
                        9 : 'locationOffCampus'},
 
-    enablePush: function(username, token){
-        bridgeit.usePushService(window.pushUri, null, {auth:{access_token: token},account: 'bridget_u', realm: 'bridgeit.u'});
+    enablePush: function(){
+        bridgeit.usePushService(window.pushUri, null, {
+            auth:{
+                access_token: bridgeit.services.auth.getLastAccessToken()
+            },
+            account: 'bridget_u', 
+            realm: 'bridgeit.u'
+        });
     },
 
     initAdminPage: function() {
+        /*
         bridgeit.useServices({
                 realm:"bridgeit.u",
                 serviceBase:"http://dev.bridgeit.io"});
-
+        */
         $('#crtEvntFrm').submit(adminController.createEventSubmit);
         $('#evntNtfctnFrm').submit(adminController.notifySubmit);
         $('#cstmNtfctnFrm').submit(adminController.customNotifySubmit);
         $('#loginModalForm').submit(controller.loginSubmit('admin'));
         $('#logoutNavbar').click(controller.logoutClick('admin'));
         // No Admin token
-        if(sessionStorage.bridgeitUToken === undefined){
+
+        var token = bridgeit.services.auth.getLastAccessToken();
+        if(!token ){
             view.showLoginNavbar();
             adminView.forceLogin();
         // Valid Admin token - logged in
-        } else if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        } else if(bridgeit.services.auth.isLoggedIn()){
             adminController.adminLoggedIn();
             // TODO: If admin needs to receive push updates, uncomment line below and implement
             //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-            adminController.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+            adminController.enablePush();
         // Invalid Admin token - log out
         }else{
             adminController.adminLogout('expired');
         }
     },
 
-    adminLoginDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            // Check that user has admin permissions
-            var postData = {};
-            postData['access_token'] = data.access_token;
-            postData['permissions'] = 'u.admin';
-            $.ajax({
-                url : window.authServicePermissions,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(adminView.adminPermissionFail)
-            .done(adminController.adminPermissionDone(data.access_token, data.expires_in));
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
-        }
+    adminLoginDone: function(data){
+        // Check that user has admin permissions
+        bridgeit.services.auth.checkUserPermissions({
+            permissions: 'u.admin'
+        }).then(adminController.adminPermissionDone)['catch'](adminView.adminPermissionFail);
     },
 
+<<<<<<< HEAD
+    adminPermissionDone: function(){
+        sessionStorage.setItem('bridgeitUUsername', $('#userName').val());
+        // TODO: If admin needs to receive push updates, uncomment line below and implement
+        //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+        adminController.enablePush();
+        adminController.adminLoggedIn();
+=======
     adminPermissionDone: function(token, expires_in){
         return function(data, textStatus, jqxhr){
             if(jqxhr.status === 200){
@@ -270,6 +253,7 @@ window.adminController = {
                 view.serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
             }
         }
+>>>>>>> FETCH_HEAD
     },
 
     adminLoggedIn: function(){
@@ -280,7 +264,7 @@ window.adminController = {
 
     createEventSubmit: function(event){
         event.preventDefault();
-        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        if( bridgeit.services.auth.isLoggedIn()){
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json Post data from form's elements
             */
@@ -298,7 +282,7 @@ window.adminController = {
 
     notifySubmit: function(event){
         event.preventDefault();
-        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        if( bridgeit.services.auth.isLoggedIn()){
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json post data from form's elements
             */
@@ -314,22 +298,16 @@ window.adminController = {
                     flow = window.orNotificationFlow;
                 }
                 var postData = {};
-                postData['access_token'] = sessionStorage.bridgeitUToken;
                 postData['pushSubject'] = pushSubject;
                 postData['expiry'] = (new Date()).getTime() + (5 * 1000);
                 postData['targetRole'] = form.targetRole.value;
                 postData['targetEvent'] = targetEvent;
                 postData['targetLctn'] = form.targetLctn.value;
 
-                $.ajax({
-                    url : flow,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(adminView.notifyFail)
-                .done(adminView.notifyDone);
+                bridgeit.services.code.executeFlow({
+                    flow: flow,
+                    data: postData
+                }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
             }
         }else{
             adminController.adminLogout('expired');
@@ -338,7 +316,7 @@ window.adminController = {
 
     customNotifySubmit: function(event){
         event.preventDefault();
-        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        if(bridgeit.services.auth.isLoggedIn()){
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json post data from form's elements
             */
@@ -347,20 +325,14 @@ window.adminController = {
 
             if(util.validate(form)){
                 var postData = {};
-                postData['access_token'] = sessionStorage.bridgeitUToken;
                 postData['pushSubject'] = pushSubject;
                 postData['expiry'] = (new Date()).getTime() + (5 * 1000);
                 postData['targetEvent'] = 'Custom Notification';
 
-                $.ajax({
-                    url : window.customNotificationFlow,
-                    type: 'POST',
-                    dataType : 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    data : JSON.stringify(postData)
-                })
-                .fail(adminView.notifyFail)
-                .done(adminView.notifyDone);
+                bridgeit.services.code.executeFlow({
+                        flow: window.customNotificationFlow,
+                        data: postData
+                    }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
             }
         }else{
             adminController.adminLogout('expired');
@@ -371,7 +343,7 @@ window.adminController = {
         $('#ntfctnTextLabel').html(model.events[documentId]);
         $('#oldEvntNtfctnFrm').off('submit').on('submit',(function( event ) {
             event.preventDefault();
-            if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+            if(bridgeit.services.auth.isLoggedIn()){
                 /* form element used to generically validate form elements (could also serialize the form if necessary)
                 *  Also using form to create json post data from form's elements
                 */
@@ -382,7 +354,6 @@ window.adminController = {
                 if(util.validate(form)){
                     var flow = adminController.flowLookupObject[form.ntfctnSlct.value];
                     var postData = {};
-                    postData['access_token'] = sessionStorage.bridgeitUToken;
                     postData['eventName'] = eventName;
                     postData['pushSubject'] = pushSubject;
                     postData['expiry'] = (new Date()).getTime() + (5 * 1000);
@@ -401,15 +372,10 @@ window.adminController = {
                             postData['location'] = 'Off Campus';
                         }
                     }
-                    $.ajax({
-                        url : flow,
-                        type: 'POST',
-                        dataType : 'json',
-                        contentType: 'application/json; charset=utf-8',
-                        data : JSON.stringify(postData)
-                    })
-                    .fail(adminView.notifyFail)
-                    .done(adminView.notifyDone);
+                    bridgeit.services.code.executeFlow({
+                        flow: flow,
+                        data: postData
+                    }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
                 }
             }else{
                 adminController.adminLogout('expired');
@@ -419,23 +385,18 @@ window.adminController = {
 
     notifyCRUDEvent: function(){
         var postData = {};
-        postData['access_token'] = sessionStorage.bridgeitUToken;
         postData['pushSubject'] = 'Event List Modified';
         postData['expiry'] = (new Date()).getTime() + (5 * 1000);
-        $.ajax({
-            url : window.anonAndStudentNotificationFlow,
-            type: 'POST',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(postData)
-        })
-        .fail(adminView.notifyFail)
-        .done(adminView.notifyDone);
         //bridgeit.pushQuery('{"$or":[{"_id":"anonymous"},{"type":"u.student"}]}','{"_id": true}');
+
+        bridgeit.services.code.executeFlow({
+            flow: window.anonAndStudentNotificationFlow,
+            data: postData
+        }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
     },
 
     deleteEvent: function(documentId){
-        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+        if(bridgeit.services.auth.isLoggedIn()){
             if (confirm("Delete Event?")){
                 adminModel.deleteEvent(documentId);
             }
@@ -445,40 +406,36 @@ window.adminController = {
     },
 
     editEvent: function(documentId){
-        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
-            $.getJSON( window.documentService + '/' + documentId + '?access_token=' + sessionStorage.bridgeitUToken + '&results=one')
-            .fail(view.requestServiceFail('document service'))
-            .done(adminController.editGetEventDone);
+        if(bridgeit.services.auth.isLoggedIn()){
+            bridgeit.services.documents.getDocument({
+                id: documentId
+            }).then(adminController.editGetEventDone)['catch'](view.requestServiceFail('document service'));
         }else{
             adminController.adminLogout('expired');
         }
     },
 
-    editGetEventDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            adminView.populateEditFields(data);
-            $('#edtEvntFrm').off('submit').on('submit',(function( event ) {
-                event.preventDefault();
-                /* form element used to generically validate form elements (could also serialize the form if necessary)
-                *  Also using form to create json Put data from form's elements
-                */
-                var form = this;
-                if(util.validate(form)){
-                    var putData = {};
-                    putData['name'] = form.edtName.value;
-                    putData['details'] = form.edtDetails.value;
-                    adminModel.editEvent(putData,data._id);
-                }
-            }));
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
-        }
+    editGetEventDone: function(data){
+        adminView.populateEditFields(data);
+        $('#edtEvntFrm').off('submit').on('submit',(function( event ) {
+            event.preventDefault();
+            /* form element used to generically validate form elements (could also serialize the form if necessary)
+            *  Also using form to create json Put data from form's elements
+            */
+            var form = this;
+            if(util.validate(form)){
+                var putData = {};
+                putData['name'] = form.edtName.value;
+                putData['details'] = form.edtDetails.value;
+                adminModel.editEvent(putData,data._id);
+            }
+        }));
     },
 
     adminLogout: function(expired){
-        sessionStorage.removeItem('bridgeitUToken');
-        sessionStorage.removeItem('bridgeitUTokenExpires');
+        bridgeit.services.auth.disconnect();
         sessionStorage.removeItem('bridgeitUUsername');
+        localStorage.removeItem('bridgeitUUsername');
         view.showLoginNavbar();
         view.clearWelcomeSpan();
         adminView.hideEditModal();

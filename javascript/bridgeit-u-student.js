@@ -1,6 +1,3 @@
-window.quickUser = 'http://dev.bridgeit.io/authadmin/bridget_u/realms/bridgeit.u/quickuser';
-window.locationsService = 'http://dev.bridgeit.io/locate/bridget_u/realms/bridgeit.u/locations';
-window.regionsService = 'http://dev.bridgeit.io/locate/bridget_u/realms/bridgeit.u/regions';
 
 // gmap
 window.map = null;
@@ -19,11 +16,41 @@ window.mapOptions = {
     styles: window.studentMapStyles
 };
 
+function isAnonymous(){
+    return getUsername() === 'anonymous';
+}
+
+function getUsername(){
+    return localStorage.getItem('bridgeitUUsername');
+}
+
 window.homeModel = {
 
     userRecord: {},
 
     retrieveEvents: function(){
+<<<<<<< HEAD
+        bridgeit.services.documents.findDocuments({
+            query: {
+                details:{$exists: true}
+            }
+        }).
+        then(homeModel.retrieveEventsDone)
+        ['catch'](view.retrieveEventsFail);
+    },
+
+    retrieveEventsDone: function(data){
+        var evntLstDiv = $('#evntLst');
+        evntLstDiv.html('');
+        $.each(data, function(i, obj) {
+            // Using Document Service to store users and notifications, this will skip them
+            if(obj.details !== undefined){
+                // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
+                model.events[obj._id] = obj.name;
+                evntLstDiv.append('<a href="#" class="list-group-item" onclick="homeController.purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
+            }
+        });
+=======
         $.getJSON(window.documentService  + '?access_token=' + 
             (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken)+
             "&query=%7B%22details%22%3A%7B%22%24exists%22%3Atrue%7D%7D")
@@ -46,144 +73,107 @@ window.homeModel = {
         }else{
             view.serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
         }
+>>>>>>> FETCH_HEAD
     },
 
     initializeStudent: function(){
-        $.getJSON( window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-        .fail(homeModel.initializeStudentFail)
-        .done(homeModel.initializeStudentDone);
+        console.log('initializeStudent()');
+        bridgeit.services.documents.getDocument({
+            id: getUsername()
+        }).then(homeModel.initializeStudentDone)['catch'](homeModel.initializeStudentFail);
     },
 
-    initializeStudentDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            homeModel.userRecord = data;
-            homeView.displayTickets();
-            homeView.setCurrentLocationText(data);
-            homeModel.retrieveLocation();
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
-        }
+    initializeStudentDone: function(data){
+        homeModel.userRecord = data;
+        homeView.displayTickets();
+        homeView.setCurrentLocationText(data);
+        homeModel.retrieveLocation();
     },
 
-    initializeStudentFail: function(jqxhr, textStatus, errorThrown){
-        if(jqxhr.status === 404){
-            // User Record doesn't exist.
-            homeModel.userRecord = {};
-            homeModel.userRecord['tickets'] = [];
-            $('#evntTcktLst').html('');
-            $('#crrntLctn').html('');
-            homeController.locationMapInit();
-        }else{
-            view.requestFail(jqxhr, textStatus, errorThrown);
-        }
+    initializeStudentFail: function(){
+        // User Record doesn't exist.
+        homeModel.userRecord = {};
+        homeModel.userRecord['tickets'] = [];
+        $('#evntTcktLst').html('');
+        $('#crrntLctn').html('');
+        homeController.locationMapInit();
     },
 
     updateStudent: function(){
-        $.getJSON( window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-        .fail(homeModel.initializeStudentFail)
-        .done(homeModel.updateStudentDone);
+        console.log('updateStudent()');
+        bridgeit.services.documents.getDocument({
+            id: getUsername()
+        }).then(homeModel.updateStudentDone)['catch'](homeModel.initializeStudentFail);
     },
 
-    updateStudentDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            homeModel.userRecord = data;
-            homeView.displayTickets();
-            homeView.setCurrentLocationText(data);
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve User Record', jqxhr.status);
-        }
+    updateStudentDone: function(data){
+        homeModel.userRecord = data;
+        homeView.displayTickets();
+        homeView.setCurrentLocationText(data);
     },
 
     retrieveLocation: function(){
-        $.getJSON(window.locationsService  + '?access_token=' + localStorage.bridgeitUToken + '&results=one&query={"username":"' + localStorage.bridgeitUUsername + '"}&options={"sort":[["lastUpdated","desc"]]}')
-        .fail(homeModel.retrieveLocationFail)
-        .done(homeModel.retrieveLocationDone);
+        bridgeit.services.location.getLastUserLocation({
+            username: getUsername()
+        }).then(homeModel.retrieveLocationDone)['catch'](homeModel.retrieveLocationFail);
     },
 
-    retrieveLocationDone: function (data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            homeController.locationMapInit(data['location']['geometry'].coordinates[1],data['location']['geometry'].coordinates[0]);
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve Location', jqxhr.status);
-        }
+    retrieveLocationDone: function (data){
+        homeController.locationMapInit(data['location']['geometry'].coordinates[1],data['location']['geometry'].coordinates[0]);
     },
 
-    retrieveLocationFail: function(jqxhr, textStatus, errorThrown){
-        if(jqxhr.status === 404){
-            // 404 means the list is empty
-        }else{
-            view.requestFail(jqxhr, textStatus, errorThrown);
-        }
+    retrieveLocationFail: function(){
+        view.requestFail(error);
         homeController.locationMapInit();
     },
 
     postUserDone: function(event){
-        return function(data, textStatus, jqxhr){
-            if( jqxhr.status === 201){
-                homeModel.saveLocation(event);
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Post User', jqxhr.status);
-            }
+        return function(data){
+            homeModel.saveLocation(event);
         }
     },
 
     saveLocation: function(event){
-        var postData = {};
-        postData['label'] = 'BridgeIt U Student Location';
-        postData['location'] = {'geometry' : {}, 'properties' : {}};
-        postData['location']['geometry'].coordinates = [event.latLng.lng(),event.latLng.lat()];
-        postData['location']['geometry'].type = 'Point';
-        postData['location']['properties'].label = 'Lat: ' + event.latLng.lat() + ' Long: ' + event.latLng.lng();
-        postData['location']['properties'].timestamp = new Date().toISOString();
-        $.ajax({
-            url : window.locationsService + '?access_token=' + localStorage.bridgeitUToken,
-            type: 'POST',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(postData)
-        })
-        .fail(view.requestServiceFail('location service'))
-        .done(homeView.locationSaveDone(postData['location']['properties'].label));
+        bridgeit.services.location.updateLocationCoordinates({
+            lon: event.latLng.lng(),
+            lat: event.latLng.lat(),
+            label: 'BridgeIt U Student Location'
+        }).then(homeView.locationSaveDone('Lat: ' + event.latLng.lat() + ' Long: ' + event.latLng.lng()))
+        ['catch'](view.requestServiceFail('location service'));
     },
 
     purchaseTicketDone: function(ticketArray, quantity, eventname){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 201){
-                view.successAlert('<strong>' + quantity + ' ' + eventname + '</strong> ticket(s) purchased.');
-                homeModel.userRecord['tickets'] = homeModel.userRecord['tickets'].concat(ticketArray);
-                homeView.displayTickets();
-                $('#purchaseTcktFrm')[0].reset();
-                $('#purchasePanel').removeClass('panel-primary');
-                $('#purchaseBttn').prop('disabled', true);
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
-            }
+        return function(data){
+            view.successAlert('<strong>' + quantity + ' ' + eventname + '</strong> ticket(s) purchased.');
+            homeModel.userRecord['tickets'] = homeModel.userRecord['tickets'].concat(ticketArray);
+            homeView.displayTickets();
+            $('#purchaseTcktFrm')[0].reset();
+            $('#purchasePanel').removeClass('panel-primary');
+            $('#purchaseBttn').prop('disabled', true);
         }
     },
 
     ticketCancelDone: function(eventname){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 201){
-                view.successAlert('<strong>' + eventname + '</strong> ticket purchase cancelled.');
-                for(var i=0; i<homeModel.userRecord['tickets'].length; i++){
-                    if(homeModel.userRecord['tickets'][i].name === eventname){
-                        homeModel.userRecord['tickets'].splice(i,1);
-                        break;
-                    }
+        return function(data){
+            view.successAlert('<strong>' + eventname + '</strong> ticket purchase cancelled.');
+            for(var i=0; i<homeModel.userRecord['tickets'].length; i++){
+                if(homeModel.userRecord['tickets'][i].name === eventname){
+                    homeModel.userRecord['tickets'].splice(i,1);
+                    break;
                 }
-                homeView.displayTickets();
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Purchase', jqxhr.status);
             }
+            homeView.displayTickets();
         }
     },
 
     handleAnonPush: function(){
         console.log('BridgeIt U Anonymous Push Callback');
         homeModel.retrieveEvents();
+        /*
         model.getNotifications("anonymous", function (data) {
             data.forEach(model.displayNotification);
         });
+        */
     }
 
 };
@@ -215,46 +205,34 @@ window.homeView = {
         homeView.markers.length = 0;
     },
 
-    retrieveRegionsDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            $.each(data, function(i, obj) {
-                window.map.data.addGeoJson(obj.location);
-            });
-            window.map.data.forEach(function(feature){
-                window.map.data.setStyle(function(feature) {
-                    var color = 'gray';
-                    if (feature.getProperty('color')) {
-                      color = feature.getProperty('color');
-                    }
-                    return ({
-                        clickable: false,
-                        fillOpacity: 0.4,
-                        fillColor: color,
-                        strokeOpacity: 0.4,
-                        strokeWeight: 1
-                    });
+    retrieveRegionsDone: function(data){
+        $.each(data, function(i, obj) {
+            window.map.data.addGeoJson(obj.location);
+        });
+        window.map.data.forEach(function(feature){
+            window.map.data.setStyle(function(feature) {
+                var color = 'gray';
+                if (feature.getProperty('color')) {
+                  color = feature.getProperty('color');
+                }
+                return ({
+                    clickable: false,
+                    fillOpacity: 0.4,
+                    fillColor: color,
+                    strokeOpacity: 0.4,
+                    strokeWeight: 1
                 });
             });
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve Regions', jqxhr.status);
-        }
+        });
     },
 
-    retrieveRegionsFail: function(jqxhr, textStatus, errorThrown){
-        if(jqxhr.status === 404){
-            // 404 means the list is empty
-        }else{
-            view.requestFail(jqxhr, textStatus, errorThrown);
-        }
+    retrieveRegionsFail: function(error){
+        view.requestFail(error);
     },
 
     locationSaveDone: function(location){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 201){
-                view.successAlert('<strong>' + location + '</strong> Location Saved');
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Save Location', jqxhr.status);
-            }
+        return function(data){
+            view.successAlert('<strong>' + location + '</strong> Location Saved');
         };
     },
 
@@ -296,13 +274,8 @@ window.homeView = {
         }
     },
 
-    ticketFail: function(jqxhr, textStatus, errorThrown){
-        if(jqxhr.status === 401){
-            // 401 unauthorized
-            view.errorAlert('<strong>Unauthorized</strong> to make a purchase: status <strong>' + jqxhr.status + '</strong>');
-        }else{
-            view.requestFail(jqxhr, textStatus, errorThrown);
-        }
+    ticketFail: function(error){
+        view.requestFail(error);
     },
 
     displayTickets: function(){
@@ -320,16 +293,12 @@ window.homeView = {
         }
     },
 
-    purchaseGetEventDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            $('#purchasePanel').addClass('panel-primary');
-            $('#purchaseBttn').prop('disabled', false);
-            document.getElementById('ticketQuantity').value = null;
-            document.getElementById('ticketName').value = data.name;
-            document.getElementById('ticketDetails').value = data.details;
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve Event', jqxhr.status);
-        }
+    purchaseGetEventDone: function(data){
+        $('#purchasePanel').addClass('panel-primary');
+        $('#purchaseBttn').prop('disabled', false);
+        document.getElementById('ticketQuantity').value = null;
+        document.getElementById('ticketName').value = data.name;
+        document.getElementById('ticketDetails').value = data.details;
     }
 
 };
@@ -337,9 +306,11 @@ window.homeView = {
 window.homeController = {
 
     initHomePage: function() {
+        /*
         bridgeit.useServices({
-                realm:"bridgeit.u",
-                serviceBase:"http://dev.bridgeit.io"});
+                realm: window.bridgeitRealmName,
+                serviceBase:window.bridgeitHost});
+        */
 
         $('#purchaseBttn').prop('disabled', true);
         $('#purchaseTcktFrm').submit(homeController.purchaseTicketSubmit);
@@ -349,32 +320,68 @@ window.homeController = {
         $('#register').click(homeView.toggleLoginRegister);
         $('#registerModalForm').submit(homeController.registerSubmit);
 
-        // No Student token
-        if(localStorage.bridgeitUToken === undefined){
+        var username = getUsername();
+
+        if(bridgeit.services.auth.isLoggedIn()){
+
+            if( isAnonymous()){
+                view.showLoginNavbar();
+                homeView.hidePanels();
+            }
+            else{
+                homeController.studentLoggedIn();
+                controller.registerPushUsernameGroup();
+            }
+        }
+        else{
             view.showLoginNavbar();
             homeView.hidePanels();
-            // Anonymous token for viewing events
-            if(util.tokenValid(localStorage.bridgeitUAnonymousToken, localStorage.bridgeitUAnonymousTokenExpires)){
-                homeModel.retrieveEvents();
-                controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
-            }else{
+            if( !username || isAnonymous()){
                 homeController.anonymousLogin();
             }
-            return;
-        // Valid Student token - logged in
-        } else if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            homeController.studentLoggedIn();
-            controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-        // Invalid Student token - log out
-        }else{
-            homeController.studentLogout('expired');
+            else{
+                homeController.studentLogout('expired');
+            }
+            
         }
+
         // Get student push notifications
-        model.handlePush();
+        isAnonymous() ? homeModel.handleAnonPush() : model.handlePush();
     },
 
     anonymousLogin: function(){
+        bridgeit.services.startTransaction();
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
+<<<<<<< HEAD
+        var username = 'anonymous';
+        localStorage.setItem('bridgeitUUsername', username);
+        bridgeit.services.auth.login({
+            username: username,
+            password: username,
+            account: window.bridgeitAccountName,
+            realm: window.bridgeitRealmName
+        }).then(homeController.anonymousLoginDone)['catch'](view.requestServiceFail('auth service'));
+    },
+
+    anonymousLoginDone: function(data){
+        homeModel.retrieveEvents();
+        controller.registerPushUsernameGroup();
+    },
+
+    studentLoginDone: function(data){
+        // Logout as anonymous
+        // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
+        // Login is required to retrieve a token so purchases can be made and notifications received
+        localStorage.setItem('bridgeitUUsername', $('#userName').val());
+        controller.registerPushUsernameGroup();
+        // TODO: reload() is called because we don't have the ability to unregister
+        // a push group listener yet (required when switching between anonymous
+        // and student users).  Revisit once this feature is added to bridgeit
+        location.reload();
+        // TODO: Uncomment when reload() is removed and add in unregister
+        // of anonymous push group.  Make call to homeController.anonymousLogin();
+        //homeController.studentLoggedIn();
+=======
         var postData = {'username' : 'anonymous',
                         'password' : 'anonymous'};
         $.ajax({
@@ -420,6 +427,7 @@ window.homeController = {
         }else{
             view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
         }
+>>>>>>> FETCH_HEAD
     },
 
     studentLoggedIn: function(){
@@ -427,14 +435,15 @@ window.homeController = {
         $('#purchasePanel').show('slow');
         $('#ticketsPanel').show('slow');
         $('#locationPanel').show();
-        view.loggedIn(localStorage.bridgeitUUsername);
+        view.loggedIn(getUsername());
         homeModel.initializeStudent();
     },
 
     studentLogout: function(expired){
-        localStorage.removeItem('bridgeitUToken');
-        localStorage.removeItem('bridgeitUTokenExpires');
+        bridgeit.services.auth.disconnect();
         localStorage.removeItem('bridgeitUUsername');
+        sessionStorage.removeItem('bridgeitUUsername');
+        bridgeit.services.endTransaction();
         // TODO: reload() is called because we don't have the ability to unregister
         // a push group listener yet (required when switching between anonymous
         // and student users).  Revisit once this feature is added to bridgeit
@@ -456,28 +465,29 @@ window.homeController = {
     },
 
     registerSubmit: function(event){
+        bridgeit.services.startTransaction();
         event.preventDefault();
         /* form element used to generically validate form elements (could also serialize the form if necessary)
         *  Also using form to create post data from form's elements
         */
         var form = this;
         if(util.validate(form) && util.confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
-            var postData = {
-                            user: {username: form.regUserName.value,
-                                   password: form.regPassWord.value,
-                                   password_confirm: form.confirmPassWord.value}};
-            $.ajax({
-                url : window.quickUser,
-                type: 'POST',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(homeView.registerFail)
-            .done(homeController.registerDone);
+            bridgeit.services.admin.registerNewUser({
+                username: form.regUserName.value,
+                password: form.regPassWord.value
+            }).then(homeController.registerDone)['catch'](homeView.registerFail);
         }
     },
 
+<<<<<<< HEAD
+    registerDone: function(data){
+        // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
+        // Login is required to retrieve a token so purchases can be made and notifications received
+        localStorage.setItem('bridgeitUUsername', $('#regUserName').val());
+        controller.registerPushUsernameGroup();
+        homeView.toggleLoginRegister();
+        homeController.studentLoggedIn();
+=======
     registerDone: function(data, textStatus, jqxhr){
         if( jqxhr.status === 201){
             // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
@@ -491,6 +501,7 @@ window.homeController = {
         }else{
             view.serviceRequestUnexpectedStatusAlert('Register', jqxhr.status);
         }
+>>>>>>> FETCH_HEAD
     },
 
     locationMapInit: function(lat, lon){
@@ -499,32 +510,26 @@ window.homeController = {
             homeView.setMapPosition(lat, lon);
         }
 
-        $.getJSON(window.regionsService  + '?access_token=' + localStorage.bridgeitUToken)
-        .fail(homeView.retrieveRegionsFail)
-        .done(homeView.retrieveRegionsDone);
-
+        bridgeit.services.location.getAllRegions().then(homeView.retrieveRegionsDone)
+        ['catch'](homeView.retrieveRegionsFail);
+        
         google.maps.event.addListener(window.map, 'click', function(event) {
             window.map.setCenter(event.latLng);
             homeView.placeMapMarker();
 
-            if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+            
+            if( bridgeit.services.auth.isLoggedIn() && !isAnonymous() ){
                 // Check if user record exists in document service
                 if(!homeModel.userRecord['_id']){
-                    var postData = {};
-                    // Ternary operator necessary in case user record does not exist in doc service
-                    postData['_id'] = localStorage.bridgeitUUsername;
-                    postData['type'] = 'u.student';
-                    postData['location'] = '';
-                    postData['tickets'] = [];
-                    $.ajax({
-                        url : window.documentService + '/' + localStorage.bridgeitUUsername + '?access_token=' + localStorage.bridgeitUToken,
-                        type: 'POST',
-                        dataType : 'json',
-                        contentType: 'application/json; charset=utf-8',
-                        data : JSON.stringify(postData)
-                    })
-                    .fail(view.requestFail)
-                    .done(homeModel.postUserDone(event));
+                    bridgeit.services.documents.createDocument({
+                        id: getUsername(),
+                        document: {
+                            '_id': getUsername(),
+                            type: 'u.student',
+                            location: '',
+                            tickets: []
+                        }
+                    }).then(homeModel.postUserDone(event))['catch'](view.requestFail);
                 }else{
                     homeModel.saveLocation(event);
                 }
@@ -536,14 +541,14 @@ window.homeController = {
 
     purchaseTicket: function(documentId){
         // No token, prompt student to login
-        if(localStorage.bridgeitUToken === undefined){
+        if(localStorage.getItem('bridgeitUToken') === undefined){
             $('#loginModal').modal('show');
             return;
         }
-        if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
-            $.getJSON( window.documentService + '/' + documentId + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-            .fail(view.requestServiceFail('document service'))
-            .done(homeView.purchaseGetEventDone);
+        if( bridgeit.services.auth.isLoggedIn() && !isAnonymous()){
+            bridgeit.services.documents.getDocument({
+                id: documentId,
+            }).then(homeView.purchaseGetEventDone)['catch'](view.requestServiceFail('document service'));
         }else{
             homeController.studentLogout('expired');
         }
@@ -556,51 +561,43 @@ window.homeController = {
         */
         var form = this;
         if(util.validate(form)){
-            var postData = {};
-            // Ternary operator necessary in case user record does not exist in doc service
-            postData['_id'] = (homeModel.userRecord['_id'] ? homeModel.userRecord['_id'] : localStorage.bridgeitUUsername);
-            postData['type'] = (homeModel.userRecord['type'] ? homeModel.userRecord['type'] : 'u.student');
-            postData['location'] = (homeModel.userRecord['location'] ? homeModel.userRecord['location'] : '');
-            postData['tickets'] = (homeModel.userRecord['tickets'] ? homeModel.userRecord['tickets'] : []);
-            var ticketArray = [];
+            var id = (homeModel.userRecord['_id'] ? homeModel.userRecord['_id'] : getUsername());
+            
+            var doc = {
+                '_id': id,
+                type: (homeModel.userRecord['type'] ? homeModel.userRecord['type'] : 'u.student'),
+                location: (homeModel.userRecord['location'] ? homeModel.userRecord['location'] : ''),
+                tickets: (homeModel.userRecord['tickets'] ? homeModel.userRecord['tickets'] : [])
+            };
             for(var i=0; i<form.ticketQuantity.value; i++){
-                ticketArray.push({name:form.ticketName.value});
+                doc.tickets.push({name:form.ticketName.value});
             }
-            postData['tickets'] = postData['tickets'].concat(ticketArray);
-            $.ajax({
-                url : window.documentService + '/' + postData['_id'] + '?access_token=' + localStorage.bridgeitUToken,
-                type: 'PUT',
-                dataType : 'json',
-                contentType: 'application/json; charset=utf-8',
-                data : JSON.stringify(postData)
-            })
-            .fail(homeView.ticketFail)
-            .done(homeModel.purchaseTicketDone(ticketArray, form.ticketName.value, form.ticketQuantity.value));
+
+            bridgeit.services.documents.updateDocument({
+                id: id,
+                document: doc
+            }).then(homeModel.purchaseTicketDone(ticketArray, form.ticketName.value, form.ticketQuantity.value))['catch'](homeView.ticketFail);
         }
     },
 
     cancelTicketPurchase: function(eventName){
-        var postData = {};
-        postData['_id'] = homeModel.userRecord['_id'];
-        postData['type'] = homeModel.userRecord['type'];
-        postData['location'] = homeModel.userRecord['location'];
-        // slice gives us a new array
-        postData['tickets'] = homeModel.userRecord['tickets'].slice(0);
-        for(var i=0; i<postData['tickets'].length; i++){
-            if(postData['tickets'][i].name === eventName){
-                postData['tickets'].splice(i,1);
+        var doc = {
+            '_id': homeModel.userRecord['_id'],
+            type: homeModel.userRecord['type'],
+            location: homeModel.userRecord['location'],
+            tickets: homeModel.userRecord['tickets'].slice(0)
+        };
+        for(var i = 0; i < doc.tickets.length; i++){
+            if( doc.tickets[i].name === eventName){
+                doc.tickets.splice(i,1);
                 break;
             }
         }
-        $.ajax({
-            url : window.documentService + '/' + postData['_id'] + '?access_token=' + localStorage.bridgeitUToken,
-            type: 'PUT',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(postData)
-        })
-        .fail(homeView.ticketFail)
-        .done(homeModel.ticketCancelDone(eventName));
+
+        bridgeit.services.documents.updateDocument({
+            id: homeModel.userRecord['_id'],
+            document: doc
+        }).then(homeModel.ticketCancelDone(eventName))['catch'](homeView.ticketFail);
     }
 
 };

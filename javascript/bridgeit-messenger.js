@@ -1,11 +1,12 @@
-window.documentService = 'http://dev.bridgeit.io/docs/bridget_u/realms/bridgeit.u/documents/';
-window.authService = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/token';
 window.pushUri = 'http://dev.bridgeit.io/push';
 window.codeService = 'http://dev.bridgeit.io/coden/bridget_u/realms/bridgeit.u/nodes/';
 window.pushGroupNewMessage = 'bridgeitCloudMessenger_newMessage';
 window.pushGroupCountsUpdated = 'bridgeitCloudMessenger_countsUpdated';
 window.bridgeitMessengerCountDoc = 'bridgeitMessengerCountDoc';
 window.bridgeitMessengerMessageDoc = 'bridgeitMessengerMessage';
+window.bridgeitAccountName = 'bridget_u';
+window.bridgeitRealmName = 'bridgeit.u';
+window.bridgeitHost = 'dev.bridgeit.io';
 
 bridgeit.goBridgeItURL = "cloud-messenger.html";
 
@@ -13,13 +14,9 @@ bridgeit.goBridgeItURL = "cloud-messenger.html";
 window.model = {
 
    fetchMessageCounts: function(success, fail){
-   		var token = sessionStorage.bridgeitUToken;
-   		if( !token ){
-   			token = localStorage.bridgeitUToken;
-   		}
-		$.getJSON( window.documentService + window.bridgeitMessengerCountDoc + '?access_token=' + token + '&results=one')
-	        .fail(fail)
-	        .done(success);
+   		bridgeit.services.documents.getDocument({
+   			id: window.bridgeitMessengerCountDoc
+   		}).then(success).catch(fail);
 	}
 
 };
@@ -33,13 +30,8 @@ window.view = {
 		$('#loginModal').modal('hide');
 	},
 
-	loginFail: function(jqxhr, textStatus, errorThrown){
-		if(jqxhr.status === 401){
-			// 401 unauthorized
-			view.loginErrorAlert('Invalid Credentials');
-		}else{
-			view.requestFail(jqxhr, textStatus, errorThrown);
-		}
+	loginFail: function(){
+		view.loginErrorAlert('Invalid Credentials');
 	},
 
 	showLoginNavbar: function(){
@@ -160,15 +152,16 @@ window.controller = {
 				}
 				var postData = {'username' : form.userName.value,
 								'password' : form.passWord.value};
-				$.ajax({
-					url : window.authService,
-					type: 'POST',
-					dataType : 'json',
-					contentType: 'application/json; charset=utf-8',
-					data : JSON.stringify(postData)
+
+				bridgeit.services.auth.connect({
+					username: form.userName.value,
+					password: form.passWord.value,
+					account: window.bridgeitAccountName,
+					realm: window.bridgeitRealmName,
+					host: window.bridgeitHost
 				})
-				.fail(view.loginFail)
-				.done(isAdmin ? adminController.adminLoginDone : homeController.userLoginDone);
+				.then(isAdmin ? adminController.adminLoginDone : homeController.userLoginDone)
+				.catch(view.loginFail);
 			}else{
 				//Form fields are invalid, remove any alerts related to authentication
 				view.clearAlertLoginDiv();
@@ -187,11 +180,11 @@ window.controller = {
 		};
 	},
 
-	enablePush: function(username, token){
+	enablePush: function(username){
 		bridgeit.usePushService(window.pushUri, null, 
 			{
 				auth:{
-					access_token: token
+					access_token: bridgeit.services.auth.getLastAccessToken()
 				},
 				account: 'bridget_u', 
 				realm: 'bridgeit.u'
@@ -227,10 +220,6 @@ window.util = {
 			view.registerErrorAlert('Passwords do not match.');
 			return false;
 		}
-	},
-
-	tokenValid: function (token, expires, type){
-		return (token !== undefined) && (parseInt(expires) > new Date().getTime());
 	}
 
 };

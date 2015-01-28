@@ -1,5 +1,4 @@
-window.adminSendMessageFlow = window.codeService + 'adminSendMessage';
-window.authServicePermissions = 'http://dev.bridgeit.io/auth/bridget_u/realms/bridgeit.u/permission';
+window.adminSendMessageFlow = 'adminSendMessage';
 
 window.adminModel = {
 
@@ -25,13 +24,8 @@ window.adminView = {
 		$('#loginCancelBttn').show();
 	},
 
-	adminPermissionFail: function(jqxhr, textStatus, errorThrown){
-		if(jqxhr.status === 403){
-			// 403 permissionNotGranted
-			view.loginErrorAlert('Invalid Login - you are not an administrator');
-		}else{
-			view.requestFail(jqxhr, textStatus, errorThrown);
-		}
+	adminPermissionFail: function(){
+		view.loginErrorAlert('Invalid Login - you are not an administrator');
 	},
 
 	hideEditModal: function(){
@@ -51,26 +45,18 @@ window.adminView = {
 		$('#crtEvntFrm')[0].reset();
 	},
 
-	sendMessageFail: function(jqxhr, textStatus, errorThrown){
-		if(jqxhr.status === 401){
-			// 401 unauthorized
-			view.errorAlert('<strong>Unauthorized</strong> to send event notifications: status <strong>' + jqxhr.status + '</strong>');
-		}else{
-			view.requestFail(jqxhr, textStatus, errorThrown);
-		}
+	sendMessageFail: function(errorThrown){
+		view.errorAlert('<strong>Unauthorized</strong> to send event notifications: status <strong>' + 
+			errorThrown + '</strong>');
 	},
 
-	sendMessageDone: function(data, textStatus, jqxhr){
-		if(jqxhr.status === 200){
-			if(data.pushSubject){
-				view.infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
-			}else{
-				view.infoAlert('Message sent.');
-			}
-			view.resetForm('sendMessageFrm');
+	sendMessageDone: function(data){
+		if(data.pushSubject){
+			view.infoAlert('<strong>' + data.pushSubject + '</strong> push group notified.');
 		}else{
-			view.serviceRequestUnexpectedStatusAlert('Notify', jqxhr.status);
+			view.infoAlert('Message sent.');
 		}
+		view.resetForm('sendMessageFrm');
 	},
 
 	pushMessageDone: function(){
@@ -104,41 +90,32 @@ window.adminController = {
 		$('#loginModalForm').submit(controller.loginSubmit('admin'));
 		$('#logoutNavbar').click(controller.logoutClick('admin'));
 		// No Admin token
-		if(sessionStorage.bridgeitUToken === undefined){
+		if(!bridgeit.services.auth.isLoggedIn()){
 			view.showLoginNavbar();
 			adminView.forceLogin();
 		// Valid Admin token - logged in
-		} else if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+		} else {
 			adminController.adminLoggedIn();
 			// TODO: If admin needs to receive push updates, uncomment line below and implement
 			//controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-			controller.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+			controller.enablePush(sessionStorage.bridgeitUUsername,bridgeit.services.auth.getLastAccessToken());
 		// Invalid Admin token - log out
-		}else{
-			adminController.adminLogout('expired');
 		}
 	},
 
-	adminLoginDone: function(data, textStatus, jqxhr){
-		if( jqxhr.status === 200){
-			// Check that user has admin permissions
-			var postData = {};
-			postData['access_token'] = data.access_token;
-			postData['permissions'] = 'u.admin';
-			$.ajax({
-				url : window.authServicePermissions,
-				type: 'POST',
-				dataType : 'json',
-				contentType: 'application/json; charset=utf-8',
-				data : JSON.stringify(postData)
-			})
-			.fail(adminView.adminPermissionFail)
-			.done(adminController.adminPermissionDone(data.access_token, data.expires_in));
-		}else{
-			view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
-		}
+	adminLoginDone: function(data){
+		// Check that user has admin permissions
+		bridgeit.services.auth.checkUserPermissions({
+			permissions: 'u.admin'
+		}).then(adminPermissionDone).catch(adminView.adminPermissionFail);
 	},
 
+<<<<<<< HEAD
+	adminPermissionDone: function(){
+		sessionStorage.bridgeitUUsername = $('#userName').val();
+		controller.enablePush(sessionStorage.bridgeitUUsername);
+		adminController.adminLoggedIn();
+=======
 	adminPermissionDone: function(token, expires_in){
 		return function(data, textStatus, jqxhr){
 			if(jqxhr.status === 200){
@@ -151,6 +128,7 @@ window.adminController = {
 				view.serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
 			}
 		}
+>>>>>>> FETCH_HEAD
 	},
 
 	adminLoggedIn: function(){
@@ -162,34 +140,23 @@ window.adminController = {
 
 	sendMessageSubmit: function(event){
 		event.preventDefault();
-		if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
+		if(bridgeit.services.auth.isLoggedIn()){
 			var form = this;
-			var postData = {};
-                postData['access_token'] = sessionStorage.bridgeitUToken;
-                postData['pushSubject'] = this.messageSubject.value;
-                postData['pushBody'] = this.messageBody.value;
-                postData['expiry'] = (new Date()).getTime() + (5 * 1000);
-
-            $.ajax({
-				url : window.documentService + window.bridgeitMessengerMessageDoc+ '?access_token=' + sessionStorage.bridgeitUToken,
-				type: 'POST',
-				dataType : 'json',
-				contentType: 'application/json; charset=utf-8',
-				data : JSON.stringify({
+			bridgeit.services.documents.createDocument({
+            	id: window.bridgeitMessengerMessageDoc,
+            	document: {
 					updated: new Date().getTime(),
 					subject: this.messageSubject.value,
 					body: this.messageBody.value
-				})
-			})
-			.done(function(){
+				}
+            }).then(function(){
 				bridgeit.push( window.pushGroupNewMessage, 
 				{
 					'subject': form.messageSubject.value, 
 					'detail': form.messageBody.value
 				});
 				adminView.pushMessageDone();
-			})
-			.fail(adminView.sendMessageFail);
+			}).catch(adminView.sendMessageFail);
 		}else{
 			adminController.adminLogout('expired');
 		}
@@ -197,8 +164,7 @@ window.adminController = {
 
 	
 	adminLogout: function(expired){
-		sessionStorage.removeItem('bridgeitUToken');
-		sessionStorage.removeItem('bridgeitUTokenExpires');
+		bridgeit.services.auth.disconnect();
 		sessionStorage.removeItem('bridgeitUUsername');
 		view.showLoginNavbar();
 		view.clearWelcomeSpan();

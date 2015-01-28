@@ -1,5 +1,4 @@
-window.quickUser = 'http://dev.bridgeit.io/authadmin/bridget_u/realms/bridgeit.u/quickuser';
-window.userMessageResponseFlow = window.codeService + 'richresponse?accept=';
+window.userMessageResponseFlow = 'richresponse';
 
 window.homeModel = {
 
@@ -11,37 +10,33 @@ window.homeModel = {
 
 	newMessagePushCallback: function(){
         console.log('BridgeIt Cloud Messenger New Message Push Callback');
-        $.getJSON(window.documentService + window.bridgeitMessengerMessageDoc + '?access_token=' + localStorage.bridgeitUToken + '&results=one')
-        .done(
-        	function(json){
-        		//show popup if message is less than a minute old
-        		if( new Date().getTime() - json.updated < (60*1000)){
-        			$('#messageSubject').html(json.subject);
-	        		$('#messageBody').html(json.body);
-	        		var updated = new Date();
-	        		updated.setTime(parseInt(json.updated));
-	        		$('#messageUpdated').html(updated.toLocaleTimeString());
-	        		$('#messageModal').modal();
-        		}
-        		
-        	}
-        )
-        .fail(
-        	function(error){
-        		console.log('failed fetching new message content: ' + error);
-        	}
-        );
+        bridgeit.services.documents.getDocument({
+        	id: window.bridgeitMessengerMessageDoc
+        }).then(function(json){
+    		//show popup if message is less than a minute old
+    		if( new Date().getTime() - json.updated < (60*1000)){
+    			$('#messageSubject').html(json.subject);
+        		$('#messageBody').html(json.body);
+        		var updated = new Date();
+        		updated.setTime(parseInt(json.updated));
+        		$('#messageUpdated').html(updated.toLocaleTimeString());
+        		$('#messageModal').modal();
+    		}		
+        }).catch(function(error){
+    		console.log('failed fetching new message content: ' + error);
+    	});
     },
 
     respondToMessage: function(response){
 
-    	$.ajax({
-            url : window.userMessageResponseFlow + response + '?access_token=' + localStorage.bridgeitUToken,
-            type: 'POST',
-            contentType: 'application/json; charset=utf-8'
-        }).then(function(){
+    	bridgeit.services.code.executeFlow({
+    		flow: window.userMessageResponseFlow,
+    		data: {
+    			accept: response
+    		}
+    	}).then(function(){
         	console.log('successfully updated counts');
-        }).fail(function(error){
+        }).catch(function(error){
         	console.log('updating counts failed: ' + error);
         });
         
@@ -97,21 +92,28 @@ window.homeController = {
 		$('#register').click(homeView.toggleLoginRegister);
 		$('#registerModalForm').submit(homeController.registerSubmit);
 
-		if(localStorage.bridgeitUToken === undefined){
+		if(!bridgeit.services.auth.isLoggedIn()){
             view.showLoginNavbar();
             homeView.hidePanels();
             $('#loginModal').modal();
-        // Valid Student token - logged in
-        } else if(util.tokenValid(localStorage.bridgeitUToken, localStorage.bridgeitUTokenExpires)){
+        } 
+        else{
 			homeController.userLoggedIn();
 			homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
 			controller.enablePush(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-		}else{
-			homeController.userLogout('expired');
+			homeModel.newMessagePushCallback();
 		}
-		homeModel.newMessagePushCallback();
+
 	},
 
+<<<<<<< HEAD
+	userLoginDone: function(data){
+		// Login is required to retrieve a token so purchases can be made and notifications received
+		localStorage.bridgeitUUsername = $('#userName').val();
+		homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername, 
+			bridgeit.services.auth.getLastAccessToken());
+		location.reload();
+=======
 	userLoginDone: function(data, textStatus, jqxhr){
 		if( jqxhr.status === 200){
 			// Login is required to retrieve a token so purchases can be made and notifications received
@@ -123,6 +125,7 @@ window.homeController = {
 		}else{
 			view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
 		}
+>>>>>>> FETCH_HEAD
 	},
 
 	userLoggedIn: function(){
@@ -130,9 +133,8 @@ window.homeController = {
 	},
 
 	userLogout: function(expired){
-		var token = localStorage.getItem('bridgeitUToken');
-		localStorage.removeItem('bridgeitUToken');
-		localStorage.removeItem('bridgeitUTokenExpires');
+		var token = bridgeit.services.auth.getLastAccessToken();
+		bridgeit.services.auth.disconnect();
 		localStorage.removeItem('bridgeitUUsername');
 		if( token ){
 			location.reload();
@@ -146,44 +148,31 @@ window.homeController = {
 		*/
 		var form = this;
 		if(util.validate(form) && util.confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
-			var postData = {
-							user: {username: form.regUserName.value,
-								   password: form.regPassWord.value,
-								   password_confirm: form.confirmPassWord.value}};
-			$.ajax({
-				url : window.quickUser,
-				type: 'POST',
-				dataType : 'json',
-				contentType: 'application/json; charset=utf-8',
-				data : JSON.stringify(postData)
-			})
-			.fail(homeView.registerFail)
-			.done(homeController.registerDone);
+			bridgeit.services.auth.registerAsNewUser({
+				username: form.regUserName.value,
+				password: form.regPassWord.value,
+				account: window.bridgeitAccountName,
+				realm: window.bridgeitRealmName,
+				host: window.bridgeitHost
+			}).then(homeController.registerDone).catch(homeView.registerFail);
 		}
 	},
 
-	registerDone: function(data, textStatus, jqxhr){
-		if( jqxhr.status === 201){
-			// Login is required to retrieve a token 
-			localStorage.bridgeitUToken = data.token.access_token;
-			localStorage.bridgeitUTokenExpires = data.token.expires_in;
-			localStorage.bridgeitUUsername = $('#regUserName').val();
-			homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-			homeView.toggleLoginRegister();
-			homeController.userLoggedIn();
-		}else{
-			view.serviceRequestUnexpectedStatusAlert('Register', jqxhr.status);
-		}
+	registerDone: function(data){
+		localStorage.bridgeitUUsername = $('#regUserName').val();
+		homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername);
+		homeView.toggleLoginRegister();
+		homeController.userLoggedIn();
 	},
 
-	registerNewMessagePushGroup: function(username, token){
+	registerNewMessagePushGroup: function(username){
 		bridgeit.usePushService(window.pushUri, null, 
 			{
 				auth:{
-					access_token: token
+					access_token: bridgeit.services.auth.getLastAccessToken()
 				},
-				account: 'bridget_u', 
-				realm: 'bridgeit.u'
+				account: window.bridgeitAccountName, 
+				realm: window.bridgeitRealmName
 			}
 		);
 		bridgeit.addPushListener(window.pushGroupNewMessage, 'homeModel.newMessagePushCallback');
