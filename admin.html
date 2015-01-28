@@ -13,8 +13,16 @@
       <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
+    <script src="javascript/es6-promise.js"></script>
+    <script>
+        if( !("Promise" in window)){
+            window.Promise = ES6Promise.Promise;
+        }
+    </script>
+
     <!-- bridgeit.js UNSTABLE VERSION -->
     <script src="http://bridgeit.github.io/bridgeit.js/src/bridgeit.js"></script>
+    <script src="http://bridgeit.github.io/bridgeit.js/src/bridgeit-services.js"></script>
     <!-- bridgeit.js STABLE VERSION
     <script src="http://api.bridgeit.mobi/bridgeit/bridgeit.js"></script -->
 
