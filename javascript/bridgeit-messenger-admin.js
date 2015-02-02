@@ -110,25 +110,10 @@ window.adminController = {
 		}).then(adminPermissionDone).catch(adminView.adminPermissionFail);
 	},
 
-<<<<<<< HEAD
 	adminPermissionDone: function(){
 		sessionStorage.bridgeitUUsername = $('#userName').val();
 		controller.enablePush(sessionStorage.bridgeitUUsername);
 		adminController.adminLoggedIn();
-=======
-	adminPermissionDone: function(token, expires_in){
-		return function(data, textStatus, jqxhr){
-			if(jqxhr.status === 200){
-				sessionStorage.bridgeitUToken = token;
-				sessionStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(expires_in) - 500;
-				sessionStorage.bridgeitUUsername = $('#userName').val();
-				controller.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-				adminController.adminLoggedIn();
-			}else{
-				view.serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
-			}
-		}
->>>>>>> FETCH_HEAD
 	},
 
 	adminLoggedIn: function(){

@@ -29,7 +29,6 @@ window.homeModel = {
     userRecord: {},
 
     retrieveEvents: function(){
-<<<<<<< HEAD
         bridgeit.services.documents.findDocuments({
             query: {
                 details:{$exists: true}
@@ -50,30 +49,6 @@ window.homeModel = {
                 evntLstDiv.append('<a href="#" class="list-group-item" onclick="homeController.purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
             }
         });
-=======
-        $.getJSON(window.documentService  + '?access_token=' + 
-            (localStorage.bridgeitUToken ? localStorage.bridgeitUToken : localStorage.bridgeitUAnonymousToken)+
-            "&query=%7B%22details%22%3A%7B%22%24exists%22%3Atrue%7D%7D")
-        .fail(view.retrieveEventsFail)
-        .done(homeModel.retrieveEventsDone);
-    },
-
-    retrieveEventsDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            var evntLstDiv = $('#evntLst');
-            evntLstDiv.html('');
-            $.each(data, function(i, obj) {
-                // Using Document Service to store users and notifications, this will skip them
-                if(obj.details !== undefined){
-                    // Store the name Strings in the page to avoid encoding/decoding Strings coming from the service that may be used in javascript methods
-                    model.events[obj._id] = obj.name;
-                    evntLstDiv.append('<a href="#" class="list-group-item" onclick="homeController.purchaseTicket(\'' + obj._id + '\');">' + obj.name + '</a>');
-                }
-            });
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Retrieve Events', jqxhr.status);
-        }
->>>>>>> FETCH_HEAD
     },
 
     initializeStudent: function(){
@@ -352,7 +327,6 @@ window.homeController = {
     anonymousLogin: function(){
         bridgeit.services.startTransaction();
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
-<<<<<<< HEAD
         var username = 'anonymous';
         localStorage.setItem('bridgeitUUsername', username);
         bridgeit.services.auth.login({
@@ -381,53 +355,6 @@ window.homeController = {
         // TODO: Uncomment when reload() is removed and add in unregister
         // of anonymous push group.  Make call to homeController.anonymousLogin();
         //homeController.studentLoggedIn();
-=======
-        var postData = {'username' : 'anonymous',
-                        'password' : 'anonymous'};
-        $.ajax({
-            url : window.authService,
-            type: 'POST',
-            dataType : 'json',
-            contentType: 'application/json; charset=utf-8',
-            data : JSON.stringify(postData)
-        })
-        .fail(view.requestServiceFail('auth service'))
-        .done(homeController.anonymousLoginDone);
-    },
-
-    anonymousLoginDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            localStorage.bridgeitUAnonymousToken = data.access_token;
-            localStorage.bridgeitUAnonymousTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
-            homeModel.retrieveEvents();
-            controller.registerPushUsernameGroup('anonymous',localStorage.bridgeitUAnonymousToken);
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Anonymous Login', jqxhr.status);
-        }
-    },
-
-    studentLoginDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 200){
-            // Logout as anonymous
-            localStorage.removeItem('bridgeitUAnonymousToken');
-            localStorage.removeItem('bridgeitUAnonymousTokenExpires');
-            // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
-            // Login is required to retrieve a token so purchases can be made and notifications received
-            localStorage.bridgeitUToken = data.access_token;
-            localStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
-            localStorage.bridgeitUUsername = $('#userName').val();
-            controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-            // TODO: reload() is called because we don't have the ability to unregister
-            // a push group listener yet (required when switching between anonymous
-            // and student users).  Revisit once this feature is added to bridgeit
-            location.reload();
-            // TODO: Uncomment when reload() is removed and add in unregister
-            // of anonymous push group.  Make call to homeController.anonymousLogin();
-            //homeController.studentLoggedIn();
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
-        }
->>>>>>> FETCH_HEAD
     },
 
     studentLoggedIn: function(){
@@ -479,7 +406,6 @@ window.homeController = {
         }
     },
 
-<<<<<<< HEAD
     registerDone: function(data){
         // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
         // Login is required to retrieve a token so purchases can be made and notifications received
@@ -487,21 +413,6 @@ window.homeController = {
         controller.registerPushUsernameGroup();
         homeView.toggleLoginRegister();
         homeController.studentLoggedIn();
-=======
-    registerDone: function(data, textStatus, jqxhr){
-        if( jqxhr.status === 201){
-            // We don't retrieveEvents for non-admin because they have already been retrieved for viewing anonymously
-            // Login is required to retrieve a token so purchases can be made and notifications received
-            localStorage.bridgeitUToken = data.token.access_token;
-            localStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
-            localStorage.bridgeitUUsername = $('#regUserName').val();
-            controller.registerPushUsernameGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-            homeView.toggleLoginRegister();
-            homeController.studentLoggedIn();
-        }else{
-            view.serviceRequestUnexpectedStatusAlert('Register', jqxhr.status);
-        }
->>>>>>> FETCH_HEAD
     },
 
     locationMapInit: function(lat, lon){

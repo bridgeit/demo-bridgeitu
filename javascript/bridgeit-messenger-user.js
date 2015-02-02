@@ -106,26 +106,12 @@ window.homeController = {
 
 	},
 
-<<<<<<< HEAD
 	userLoginDone: function(data){
 		// Login is required to retrieve a token so purchases can be made and notifications received
 		localStorage.bridgeitUUsername = $('#userName').val();
 		homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername, 
 			bridgeit.services.auth.getLastAccessToken());
 		location.reload();
-=======
-	userLoginDone: function(data, textStatus, jqxhr){
-		if( jqxhr.status === 200){
-			// Login is required to retrieve a token so purchases can be made and notifications received
-			localStorage.bridgeitUToken = data.access_token;
-			localStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(data.expires_in) - 500;
-			localStorage.bridgeitUUsername = $('#userName').val();
-			homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername,localStorage.bridgeitUToken);
-			location.reload();
-		}else{
-			view.serviceRequestUnexpectedStatusAlert('Login', jqxhr.status);
-		}
->>>>>>> FETCH_HEAD
 	},
 
 	userLoggedIn: function(){

@@ -12,7 +12,6 @@ bridgeit.goBridgeItURL = "admin.html";
 window.adminModel = {
 
     retrieveEventsAdmin: function(){
-<<<<<<< HEAD
         if(bridgeit.services.auth.isLoggedIn()){
             bridgeit.services.documents.findDocuments({
                 query: {
@@ -20,13 +19,6 @@ window.adminModel = {
                 }
             })
             .then(adminModel.adminRetrieveEventsDone)['catch'](view.retrieveEventsFail);
-=======
-        if(util.tokenValid(sessionStorage.bridgeitUToken, sessionStorage.bridgeitUTokenExpires)){
-            $.getJSON(window.documentService + '?access_token=' + sessionStorage.bridgeitUToken +
-                "&query=%7B%22details%22%3A%7B%22%24exists%22%3Atrue%7D%7D")
-            .fail(view.retrieveEventsFail)
-            .done(adminModel.adminRetrieveEventsDone);
->>>>>>> FETCH_HEAD
         }else{
             adminController.adminLogout('expired');
         }
@@ -231,29 +223,12 @@ window.adminController = {
         }).then(adminController.adminPermissionDone)['catch'](adminView.adminPermissionFail);
     },
 
-<<<<<<< HEAD
     adminPermissionDone: function(){
         sessionStorage.setItem('bridgeitUUsername', $('#userName').val());
         // TODO: If admin needs to receive push updates, uncomment line below and implement
         //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
         adminController.enablePush();
         adminController.adminLoggedIn();
-=======
-    adminPermissionDone: function(token, expires_in){
-        return function(data, textStatus, jqxhr){
-            if(jqxhr.status === 200){
-                sessionStorage.bridgeitUToken = token;
-                sessionStorage.bridgeitUTokenExpires = new Date().getTime() + parseInt(expires_in) - 500;
-                sessionStorage.bridgeitUUsername = $('#userName').val();
-                // TODO: If admin needs to receive push updates, uncomment line below and implement
-                //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-                adminController.enablePush(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-                adminController.adminLoggedIn();
-            }else{
-                view.serviceRequestUnexpectedStatusAlert('Permission Check', jqxhr.status);
-            }
-        }
->>>>>>> FETCH_HEAD
     },
 
     adminLoggedIn: function(){
