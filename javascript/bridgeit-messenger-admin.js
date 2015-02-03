@@ -105,9 +105,9 @@ window.adminController = {
 
 	adminLoginDone: function(data){
 		// Check that user has admin permissions
-		bridgeit.services.auth.checkUserPermissions({
+		return bridgeit.services.auth.checkUserPermissions({
 			permissions: 'u.admin'
-		}).then(adminPermissionDone).catch(adminView.adminPermissionFail);
+		}).then(adminController.adminPermissionDone).catch(adminView.adminPermissionFail);
 	},
 
 	adminPermissionDone: function(){
