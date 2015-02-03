@@ -14,7 +14,7 @@ bridgeit.goBridgeItURL = "cloud-messenger.html";
 window.model = {
 
    fetchMessageCounts: function(success, fail){
-   		bridgeit.services.documents.getDocument({
+   		bridgeit.io.documents.getDocument({
    			id: window.bridgeitMessengerCountDoc
    		}).then(success).catch(fail);
 	}
@@ -153,7 +153,7 @@ window.controller = {
 				var postData = {'username' : form.userName.value,
 								'password' : form.passWord.value};
 
-				bridgeit.services.auth.connect({
+				bridgeit.io.auth.connect({
 					username: form.userName.value,
 					password: form.passWord.value,
 					account: window.bridgeitAccountName,
@@ -184,7 +184,7 @@ window.controller = {
 		bridgeit.usePushService(window.pushUri, null, 
 			{
 				auth:{
-					access_token: bridgeit.services.auth.getLastAccessToken()
+					access_token: bridgeit.io.auth.getLastAccessToken()
 				},
 				account: 'bridget_u', 
 				realm: 'bridgeit.u'

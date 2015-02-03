@@ -23,7 +23,7 @@ window.model = {
 
     getNotifications: function(username, callback)  {
         var now = new Date();
-        bridgeit.services.documents.findDocuments({
+        bridgeit.io.documents.findDocuments({
             query: {
                 type: "notification",
                 expiry: { $gt: now.getTime() - (60 * 1000) }
@@ -184,7 +184,7 @@ window.controller = {
 
     loginSubmit: function(isAdmin){
         return function(event){
-            bridgeit.services.startTransaction();
+            bridgeit.io.startTransaction();
             event.preventDefault();
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create post data from form's elements
@@ -199,7 +199,7 @@ window.controller = {
                 var postData = {'username' : form.userName.value,
                                 'password' : form.passWord.value};
 
-                bridgeit.services.auth.connect({
+                bridgeit.io.auth.connect({
                     username: form.userName.value,
                     password: form.passWord.value,
                     account: window.bridgeitAccountName,
@@ -224,19 +224,19 @@ window.controller = {
             }else{
                 homeController.studentLogout();
             }
-            bridgeit.services.endTransaction();
+            bridgeit.io.endTransaction();
         };
     },
 
     registerPushUsernameGroup: function(){
-        //bridgeit.usePushService(window.pushUri, null, {auth:{access_token: bridgeit.services.auth.getLastAccessToken()},account: 'bridget_u', realm: 'bridgeit.u'});
+        //bridgeit.usePushService(window.pushUri, null, {auth:{access_token: bridgeit.io.auth.getLastAccessToken()},account: 'bridget_u', realm: 'bridgeit.u'});
         if (isAnonymous()) {
-            bridgeit.services.push.addPushListener({
+            bridgeit.io.push.addPushListener({
                 group: 'anonymous',
                 callback: 'homeModel.handleAnonPush'
             });
         } else {
-             bridgeit.services.push.addPushListener({
+             bridgeit.io.push.addPushListener({
                 group: localStorage.getItem('bridgeitUUsername'),
                 callback: 'model.handlePush'
             });

@@ -12,8 +12,8 @@ bridgeit.goBridgeItURL = "admin.html";
 window.adminModel = {
 
     retrieveEventsAdmin: function(){
-        if(bridgeit.services.auth.isLoggedIn()){
-            bridgeit.services.documents.findDocuments({
+        if(bridgeit.io.auth.isLoggedIn()){
+            bridgeit.io.documents.findDocuments({
                 query: {
                     details:{$exists: true}
                 }
@@ -57,7 +57,7 @@ window.adminModel = {
     },
 
     createEvent: function(postData, name){
-        bridgeit.services.documents.createDocument({
+        bridgeit.io.documents.createDocument({
             document: postData
         }).then(adminModel.createEventDone(name))['catch'](view.requestServiceFail('document service'));
     },
@@ -72,7 +72,7 @@ window.adminModel = {
     },
 
     deleteEvent: function(documentId){
-        bridgeit.services.documents.deleteDocument({
+        bridgeit.io.documents.deleteDocument({
             id: documentId
         }).then(adminModel.deleteDone(documentId))['catch'](view.requestServiceFail('document service'));
     },
@@ -86,7 +86,7 @@ window.adminModel = {
     },
 
     editEvent: function(putData, documentId){
-        bridgeit.services.documents.updateDocument({
+        bridgeit.io.documents.updateDocument({
             id: documentId,
             document: putData
         }).then(adminModel.editEventDone(documentId))['catch'](view.requestServiceFail('document service'));
@@ -178,9 +178,9 @@ window.adminController = {
                        9 : 'locationOffCampus'},
 
     enablePush: function(){
-        bridgeit.usePushService('http://' + bridgeit.services.pushURL, null, {
+        bridgeit.usePushService('http://' + bridgeit.io.pushURL, null, {
             auth:{
-                access_token: bridgeit.services.auth.getLastAccessToken()
+                access_token: bridgeit.io.auth.getLastAccessToken()
             },
             account: 'bridget_u', 
             realm: 'bridgeit.u'
@@ -200,16 +200,16 @@ window.adminController = {
         $('#logoutNavbar').click(controller.logoutClick('admin'));
         // No Admin token
 
-        var token = bridgeit.services.auth.getLastAccessToken();
+        var token = bridgeit.io.auth.getLastAccessToken();
         if(!token ){
             view.showLoginNavbar();
             adminView.forceLogin();
         // Valid Admin token - logged in
-        } else if(bridgeit.services.auth.isLoggedIn()){
+        } else if(bridgeit.io.auth.isLoggedIn()){
             adminController.adminLoggedIn();
             // TODO: If admin needs to receive push updates, uncomment line below and implement
             //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-            bridgeit.services.configureHosts();
+            bridgeit.io.configureHosts();
             adminController.enablePush();
         // Invalid Admin token - log out
         }else{
@@ -219,7 +219,7 @@ window.adminController = {
 
     adminLoginDone: function(data){
         // Check that user has admin permissions
-        bridgeit.services.auth.checkUserPermissions({
+        bridgeit.io.auth.checkUserPermissions({
             permissions: 'u.admin'
         }).then(adminController.adminPermissionDone)['catch'](adminView.adminPermissionFail);
     },
@@ -240,7 +240,7 @@ window.adminController = {
 
     createEventSubmit: function(event){
         event.preventDefault();
-        if( bridgeit.services.auth.isLoggedIn()){
+        if( bridgeit.io.auth.isLoggedIn()){
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json Post data from form's elements
             */
@@ -258,7 +258,7 @@ window.adminController = {
 
     notifySubmit: function(event){
         event.preventDefault();
-        if( bridgeit.services.auth.isLoggedIn()){
+        if( bridgeit.io.auth.isLoggedIn()){
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json post data from form's elements
             */
@@ -280,7 +280,7 @@ window.adminController = {
                 postData['targetEvent'] = targetEvent;
                 postData['targetLctn'] = form.targetLctn.value;
 
-                bridgeit.services.code.executeFlow({
+                bridgeit.io.code.executeFlow({
                     flow: flow,
                     data: postData
                 }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
@@ -292,7 +292,7 @@ window.adminController = {
 
     customNotifySubmit: function(event){
         event.preventDefault();
-        if(bridgeit.services.auth.isLoggedIn()){
+        if(bridgeit.io.auth.isLoggedIn()){
             /* form element used to generically validate form elements (could also serialize the form if necessary)
             *  Also using form to create json post data from form's elements
             */
@@ -305,7 +305,7 @@ window.adminController = {
                 postData['expiry'] = (new Date()).getTime() + (5 * 1000);
                 postData['targetEvent'] = 'Custom Notification';
 
-                bridgeit.services.code.executeFlow({
+                bridgeit.io.code.executeFlow({
                         flow: window.customNotificationFlow,
                         data: postData
                     }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
@@ -319,7 +319,7 @@ window.adminController = {
         $('#ntfctnTextLabel').html(model.events[documentId]);
         $('#oldEvntNtfctnFrm').off('submit').on('submit',(function( event ) {
             event.preventDefault();
-            if(bridgeit.services.auth.isLoggedIn()){
+            if(bridgeit.io.auth.isLoggedIn()){
                 /* form element used to generically validate form elements (could also serialize the form if necessary)
                 *  Also using form to create json post data from form's elements
                 */
@@ -348,7 +348,7 @@ window.adminController = {
                             postData['location'] = 'Off Campus';
                         }
                     }
-                    bridgeit.services.code.executeFlow({
+                    bridgeit.io.code.executeFlow({
                         flow: flow,
                         data: postData
                     }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
@@ -365,14 +365,14 @@ window.adminController = {
         postData['expiry'] = (new Date()).getTime() + (5 * 1000);
         //bridgeit.pushQuery('{"$or":[{"_id":"anonymous"},{"type":"u.student"}]}','{"_id": true}');
 
-        bridgeit.services.code.executeFlow({
+        bridgeit.io.code.executeFlow({
             flow: window.anonAndStudentNotificationFlow,
             data: postData
         }).then(adminView.notifyDone)['catch'](adminView.notifyFail);
     },
 
     deleteEvent: function(documentId){
-        if(bridgeit.services.auth.isLoggedIn()){
+        if(bridgeit.io.auth.isLoggedIn()){
             if (confirm("Delete Event?")){
                 adminModel.deleteEvent(documentId);
             }
@@ -382,8 +382,8 @@ window.adminController = {
     },
 
     editEvent: function(documentId){
-        if(bridgeit.services.auth.isLoggedIn()){
-            bridgeit.services.documents.getDocument({
+        if(bridgeit.io.auth.isLoggedIn()){
+            bridgeit.io.documents.getDocument({
                 id: documentId
             }).then(adminController.editGetEventDone)['catch'](view.requestServiceFail('document service'));
         }else{
@@ -409,7 +409,7 @@ window.adminController = {
     },
 
     adminLogout: function(expired){
-        bridgeit.services.auth.disconnect();
+        bridgeit.io.auth.disconnect();
         sessionStorage.removeItem('bridgeitUUsername');
         localStorage.removeItem('bridgeitUUsername');
         view.showLoginNavbar();

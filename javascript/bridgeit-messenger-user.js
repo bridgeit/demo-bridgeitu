@@ -10,7 +10,7 @@ window.homeModel = {
 
 	newMessagePushCallback: function(){
         console.log('BridgeIt Cloud Messenger New Message Push Callback');
-        bridgeit.services.documents.getDocument({
+        bridgeit.io.documents.getDocument({
         	id: window.bridgeitMessengerMessageDoc
         }).then(function(json){
     		//show popup if message is less than a minute old
@@ -29,7 +29,7 @@ window.homeModel = {
 
     respondToMessage: function(response){
 
-    	bridgeit.services.code.executeFlow({
+    	bridgeit.io.code.executeFlow({
     		flow: window.userMessageResponseFlow,
     		data: {
     			accept: response
@@ -92,7 +92,7 @@ window.homeController = {
 		$('#register').click(homeView.toggleLoginRegister);
 		$('#registerModalForm').submit(homeController.registerSubmit);
 
-		if(!bridgeit.services.auth.isLoggedIn()){
+		if(!bridgeit.io.auth.isLoggedIn()){
             view.showLoginNavbar();
             homeView.hidePanels();
             $('#loginModal').modal();
@@ -110,7 +110,7 @@ window.homeController = {
 		// Login is required to retrieve a token so purchases can be made and notifications received
 		localStorage.bridgeitUUsername = $('#userName').val();
 		homeController.registerNewMessagePushGroup(localStorage.bridgeitUUsername, 
-			bridgeit.services.auth.getLastAccessToken());
+			bridgeit.io.auth.getLastAccessToken());
 		location.reload();
 	},
 
@@ -119,8 +119,8 @@ window.homeController = {
 	},
 
 	userLogout: function(expired){
-		var token = bridgeit.services.auth.getLastAccessToken();
-		bridgeit.services.auth.disconnect();
+		var token = bridgeit.io.auth.getLastAccessToken();
+		bridgeit.io.auth.disconnect();
 		localStorage.removeItem('bridgeitUUsername');
 		if( token ){
 			location.reload();
@@ -134,7 +134,7 @@ window.homeController = {
 		*/
 		var form = this;
 		if(util.validate(form) && util.confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
-			bridgeit.services.auth.registerAsNewUser({
+			bridgeit.io.auth.registerAsNewUser({
 				username: form.regUserName.value,
 				password: form.regPassWord.value,
 				account: window.bridgeitAccountName,
@@ -155,7 +155,7 @@ window.homeController = {
 		bridgeit.usePushService(window.pushUri, null, 
 			{
 				auth:{
-					access_token: bridgeit.services.auth.getLastAccessToken()
+					access_token: bridgeit.io.auth.getLastAccessToken()
 				},
 				account: window.bridgeitAccountName, 
 				realm: window.bridgeitRealmName

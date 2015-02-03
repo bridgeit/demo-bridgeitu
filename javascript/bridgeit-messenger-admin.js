@@ -90,7 +90,7 @@ window.adminController = {
 		$('#loginModalForm').submit(controller.loginSubmit('admin'));
 		$('#logoutNavbar').click(controller.logoutClick('admin'));
 		// No Admin token
-		if(!bridgeit.services.auth.isLoggedIn()){
+		if(!bridgeit.io.auth.isLoggedIn()){
 			view.showLoginNavbar();
 			adminView.forceLogin();
 		// Valid Admin token - logged in
@@ -98,14 +98,14 @@ window.adminController = {
 			adminController.adminLoggedIn();
 			// TODO: If admin needs to receive push updates, uncomment line below and implement
 			//controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
-			controller.enablePush(sessionStorage.bridgeitUUsername,bridgeit.services.auth.getLastAccessToken());
+			controller.enablePush(sessionStorage.bridgeitUUsername,bridgeit.io.auth.getLastAccessToken());
 		// Invalid Admin token - log out
 		}
 	},
 
 	adminLoginDone: function(data){
 		// Check that user has admin permissions
-		return bridgeit.services.auth.checkUserPermissions({
+		return bridgeit.io.auth.checkUserPermissions({
 			permissions: 'u.admin'
 		}).then(adminController.adminPermissionDone).catch(adminView.adminPermissionFail);
 	},
@@ -125,9 +125,9 @@ window.adminController = {
 
 	sendMessageSubmit: function(event){
 		event.preventDefault();
-		if(bridgeit.services.auth.isLoggedIn()){
+		if(bridgeit.io.auth.isLoggedIn()){
 			var form = this;
-			bridgeit.services.documents.createDocument({
+			bridgeit.io.documents.createDocument({
             	id: window.bridgeitMessengerMessageDoc,
             	document: {
 					updated: new Date().getTime(),
@@ -149,7 +149,7 @@ window.adminController = {
 
 	
 	adminLogout: function(expired){
-		bridgeit.services.auth.disconnect();
+		bridgeit.io.auth.disconnect();
 		sessionStorage.removeItem('bridgeitUUsername');
 		view.showLoginNavbar();
 		view.clearWelcomeSpan();

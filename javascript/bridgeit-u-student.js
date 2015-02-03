@@ -29,7 +29,7 @@ window.homeModel = {
     userRecord: {},
 
     retrieveEvents: function(){
-        bridgeit.services.documents.findDocuments({
+        bridgeit.io.documents.findDocuments({
             query: {
                 details:{$exists: true}
             }
@@ -53,7 +53,7 @@ window.homeModel = {
 
     initializeStudent: function(){
         console.log('initializeStudent()');
-        bridgeit.services.documents.getDocument({
+        bridgeit.io.documents.getDocument({
             id: getUsername()
         }).then(homeModel.initializeStudentDone)['catch'](homeModel.initializeStudentFail);
     },
@@ -76,7 +76,7 @@ window.homeModel = {
 
     updateStudent: function(){
         console.log('updateStudent()');
-        bridgeit.services.documents.getDocument({
+        bridgeit.io.documents.getDocument({
             id: getUsername()
         }).then(homeModel.updateStudentDone)['catch'](homeModel.initializeStudentFail);
     },
@@ -88,7 +88,7 @@ window.homeModel = {
     },
 
     retrieveLocation: function(){
-        bridgeit.services.location.getLastUserLocation({
+        bridgeit.io.location.getLastUserLocation({
             username: getUsername()
         }).then(homeModel.retrieveLocationDone)['catch'](homeModel.retrieveLocationFail);
     },
@@ -110,7 +110,7 @@ window.homeModel = {
     },
 
     saveLocation: function(event){
-        bridgeit.services.location.updateLocationCoordinates({
+        bridgeit.io.location.updateLocationCoordinates({
             lon: event.latLng.lng(),
             lat: event.latLng.lat(),
             label: 'BridgeIt U Student Location'
@@ -298,7 +298,7 @@ window.homeController = {
 
         var username = getUsername();
 
-        if(bridgeit.services.auth.isLoggedIn()){
+        if(bridgeit.io.auth.isLoggedIn()){
 
             if( isAnonymous()){
                 view.showLoginNavbar();
@@ -326,11 +326,11 @@ window.homeController = {
     },
 
     anonymousLogin: function(){
-        bridgeit.services.startTransaction();
+        bridgeit.io.startTransaction();
         // Automatic auth service login with anonymous user that only has bridgeit.doc.getDocument permission
         var username = 'anonymous';
         localStorage.setItem('bridgeitUUsername', username);
-        bridgeit.services.auth.login({
+        bridgeit.io.auth.login({
             username: username,
             password: username,
             account: window.bridgeitAccountName,
@@ -368,10 +368,10 @@ window.homeController = {
     },
 
     studentLogout: function(expired){
-        bridgeit.services.auth.disconnect();
+        bridgeit.io.auth.disconnect();
         localStorage.removeItem('bridgeitUUsername');
         sessionStorage.removeItem('bridgeitUUsername');
-        bridgeit.services.endTransaction();
+        bridgeit.io.endTransaction();
         // TODO: reload() is called because we don't have the ability to unregister
         // a push group listener yet (required when switching between anonymous
         // and student users).  Revisit once this feature is added to bridgeit
@@ -393,14 +393,14 @@ window.homeController = {
     },
 
     registerSubmit: function(event){
-        bridgeit.services.startTransaction();
+        bridgeit.io.startTransaction();
         event.preventDefault();
         /* form element used to generically validate form elements (could also serialize the form if necessary)
         *  Also using form to create post data from form's elements
         */
         var form = this;
         if(util.validate(form) && util.confirmPassword(form.regPassWord.value, form.confirmPassWord.value)){
-            bridgeit.services.admin.registerNewUser({
+            bridgeit.io.admin.registerNewUser({
                 username: form.regUserName.value,
                 password: form.regPassWord.value
             }).then(homeController.registerDone)['catch'](homeView.registerFail);
@@ -422,7 +422,7 @@ window.homeController = {
             homeView.setMapPosition(lat, lon);
         }
 
-        bridgeit.services.location.getAllRegions().then(homeView.retrieveRegionsDone)
+        bridgeit.io.location.getAllRegions().then(homeView.retrieveRegionsDone)
         ['catch'](homeView.retrieveRegionsFail);
         
         google.maps.event.addListener(window.map, 'click', function(event) {
@@ -430,10 +430,10 @@ window.homeController = {
             homeView.placeMapMarker();
 
             
-            if( bridgeit.services.auth.isLoggedIn() && !isAnonymous() ){
+            if( bridgeit.io.auth.isLoggedIn() && !isAnonymous() ){
                 // Check if user record exists in document service
                 if(!homeModel.userRecord['_id']){
-                    bridgeit.services.documents.createDocument({
+                    bridgeit.io.documents.createDocument({
                         id: getUsername(),
                         document: {
                             '_id': getUsername(),
@@ -457,8 +457,8 @@ window.homeController = {
             $('#loginModal').modal('show');
             return;
         }
-        if( bridgeit.services.auth.isLoggedIn() && !isAnonymous()){
-            bridgeit.services.documents.getDocument({
+        if( bridgeit.io.auth.isLoggedIn() && !isAnonymous()){
+            bridgeit.io.documents.getDocument({
                 id: documentId,
             }).then(homeView.purchaseGetEventDone)['catch'](view.requestServiceFail('document service'));
         }else{
@@ -485,7 +485,7 @@ window.homeController = {
                 doc.tickets.push({name:form.ticketName.value});
             }
 
-            bridgeit.services.documents.updateDocument({
+            bridgeit.io.documents.updateDocument({
                 id: id,
                 document: doc
             }).then(homeModel.purchaseTicketDone(ticketArray, form.ticketName.value, form.ticketQuantity.value))['catch'](homeView.ticketFail);
@@ -506,7 +506,7 @@ window.homeController = {
             }
         }
 
-        bridgeit.services.documents.updateDocument({
+        bridgeit.io.documents.updateDocument({
             id: homeModel.userRecord['_id'],
             document: doc
         }).then(homeModel.ticketCancelDone(eventName))['catch'](homeView.ticketFail);
