@@ -178,7 +178,7 @@ window.adminController = {
                        9 : 'locationOffCampus'},
 
     enablePush: function(){
-        bridgeit.usePushService(window.pushUri, null, {
+        bridgeit.usePushService('http://' + bridgeit.services.pushURL, null, {
             auth:{
                 access_token: bridgeit.services.auth.getLastAccessToken()
             },
@@ -209,6 +209,7 @@ window.adminController = {
             adminController.adminLoggedIn();
             // TODO: If admin needs to receive push updates, uncomment line below and implement
             //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+            bridgeit.services.configureHosts();
             adminController.enablePush();
         // Invalid Admin token - log out
         }else{
