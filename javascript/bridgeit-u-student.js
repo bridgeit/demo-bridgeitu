@@ -94,10 +94,11 @@ window.homeModel = {
     },
 
     retrieveLocationDone: function (data){
-        homeController.locationMapInit(data['location']['geometry'].coordinates[1],data['location']['geometry'].coordinates[0]);
+        if( data )
+            homeController.locationMapInit(data['location']['geometry'].coordinates[1],data['location']['geometry'].coordinates[0]);
     },
 
-    retrieveLocationFail: function(){
+    retrieveLocationFail: function(error){
         view.requestFail(error);
         homeController.locationMapInit();
     },
@@ -233,8 +234,8 @@ window.homeView = {
         $('#alertRegisterDiv').html('');
     },
 
-    registerFail: function(jqxhr, textStatus, errorThrown){
-        view.registerErrorAlert(textStatus);
+    registerFail: function(error){
+        view.registerErrorAlert(error);
     },
 
     setCurrentLocationText: function(data){

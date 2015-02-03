@@ -122,13 +122,13 @@ window.view = {
     },
 
     requestServiceFail: function(service){
-        return function(jqxhr, textStatus, errorThrown){
-            view.errorAlert('<strong>Error connecting to ' + service + '</strong>: error <strong>' + error + '</strong> - please try again later.');
+        return function(error){
+            view.errorAlert('<strong>Error connecting to ' + service + '</strong>: error <strong>' + error.message + '</strong> - please try again later.');
         }
     },
 
     requestFail: function(error){
-        view.errorAlert('<strong>Error connecting to the service</strong>: Error: <strong>' + error + '</strong> - please try again later.');
+        view.errorAlert('<strong>Error connecting to the service</strong>: Error: <strong>' + error.message + '</strong> - please try again later.');
     },
 
     serviceRequestUnexpectedStatusAlert: function(source, error){
