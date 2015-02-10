@@ -75,6 +75,12 @@
 
 		/* style for modal login */
 		.modal-footer {   border-top: 0px; }
+		.btn-bar{
+			text-align: center;
+		}
+		.btn-bar a{
+			margin: 10px 20px;
+		}
 	</style>
 
 </head>
@@ -217,7 +223,7 @@
 <!-- message modal-->
 <div id="messageModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="messageModalLabel"
 	 data-backdrop="static">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-sm">
 		<div id="messageModalContent" class="modal-content">
 			<div class="modal-header">
 			  <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="$('#messageModal').hide();">×</button>
@@ -238,8 +244,12 @@
 			  		<span id="messageUpdated"></span>
 			  	</div>
 				<div class="btn-bar">
-				  <a class="btn btn-lg btn-success" onclick="homeController.acceptMessage();">Accept</a>
-				  <a class="btn btn-lg btn-danger" onclick="homeController.rejectMessage();">Reject</a>
+				  <a onclick="homeController.acceptMessage();">
+				  	<img src="./res/drawable-xxhdpi/approved.png"/>
+				  </a>
+				  <a onclick="homeController.rejectMessage();">
+				  	<img src="./res/drawable-xxhdpi/rejected.png"/>
+				  </a>
 				</div>
 				<div id="alertLoginDiv"></div>
 			  </form>
