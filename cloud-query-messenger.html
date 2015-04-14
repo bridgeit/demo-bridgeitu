@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>BridgeIt Cloud Messenger Admin</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<link rel="icon" type="image/png" href="favicon.png"/>
+	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="css/bridgeit-u.css" type="text/css" />
+
+	<!--[if lt IE 9]>
+	  <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<script src="javascript/es6-promise.js"></script>
+	<script>
+        if( !("Promise" in window)){
+            window.Promise = ES6Promise.Promise;
+        }
+    </script>
+
+	<!-- bridgeit.js UNSTABLE VERSION -->
+	<script src="http://bridgeit.github.io/bridgeit.js/src/bridgeit.js"></script>
+	<!-- bridgeit.js STABLE VERSION
+	<script src="http://api.bridgeit.mobi/bridgeit/bridgeit.js"></script -->
+
+	<script src="http://bridgeit.github.io/bridgeit.io.js/lib/bridgeit.io.js"></script>
+
+	<script src="javascript/bridgeit-messenger.js"></script>
+	<script src="javascript/bridgeit-messenger-user.js"></script>
+    <script src="javascript/bridgeit-query-messenger-user.js"></script>
+
+	<style type="text/css">
+		.navbar-static-top {
+			margin-bottom:20px;
+		}
+
+		i {
+			font-size:16px;
+		}
+
+		.nav > li > a {
+			color:#787878;
+		}
+
+		footer {
+			margin-top:20px;
+			padding-top:20px;
+			padding-bottom:20px;
+			background-color:#efefef;
+		}
+
+		/* count indicator near icons */
+		.nav>li .count {
+			position: absolute;
+			bottom: 12px;
+			right: 6px;
+			font-size: 10px;
+			font-weight: normal;
+			background: rgba(51,200,51,0.55);
+			color: rgba(255,255,255,0.9);
+			line-height: 1em;
+			padding: 2px 4px;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			-ms-border-radius: 10px;
+			-o-border-radius: 10px;
+			border-radius: 10px;
+		}
+
+		/* indent 2nd level */
+		.list-unstyled li > ul > li {
+			margin-left:10px;
+			padding:8px;
+		}
+
+		/* style for modal login */
+		.modal-footer {   border-top: 0px; }
+		.btn-bar{
+			text-align: center;
+		}
+		.btn-bar a{
+			margin: 10px 20px;
+		}
+	</style>
+
+</head>
+
+<!-- HTML code from Bootply.com editor -->
+<body  >
+
+<!-- Header -->
+<div id="top-nav" class="navbar navbar-inverse navbar-static-top">
+	<div class="container">
+		<div class="navbar-header">
+		  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+			  <span class="sr-only">Toggle navigation</span>
+			  <span class="icon-bar"></span>
+			  <span class="icon-bar"></span>
+			  <span class="icon-bar"></span>
+		  </button>
+		  <h4 class="navbar-text">BridgeIt Cloud Messenger</h4>
+		</div>
+		<div class="navbar-collapse collapse">
+		  <ul class="nav navbar-nav navbar-right">
+			<li><span id="welcome" class="navbar-text"></span></li>
+			<li><a id="cloudPushBtn" onclick="bridgeit.register('_reg', 'homeModel.cloudPushRegisteredCallback');"><i class="glyphicon glyphicon-cloud-download"></i> Cloud Push</a></li>
+			<li>
+				<a id="loginNavbar" data-toggle="modal" href="#loginModal">
+					<i class="glyphicon glyphicon-lock"></i> Login
+				</a>
+				<a id="logoutNavbar">
+					<i class="glyphicon glyphicon-lock"></i> Logout
+				</a>
+			</li>
+		  </ul>
+		</div>
+	</div><!-- /container -->
+</div>
+<!-- /Header -->
+
+<!-- Main -->
+<div class="container">
+	<div class="row">
+		<div class="col-md-3">
+			<!-- Left column -->
+			<ul class="nav nav-stacked">
+				<li class="active"><a href="http://bridgeit.mobi/" title="BridgeIt Website" target="_blank">BridgeIt Website</a></li>
+				<li><a href="http://github.com/bridgeit/" title="BridgeIt GitHub" target="_blank">BridgeIt GitHub</a></li>
+			</ul>
+			<hr>
+			
+		</div><!-- /col-3 -->
+		<div class="col-md-9">
+			<div id="noticesPanel" class="panel panel-default">
+				<div class="panel-heading"><h4>Notices</h4></div>
+				<div id="alertDiv" class="panel-body">
+					
+
+				</div>
+			</div>
+		</div><!--/col-span-9-->
+	</div><!--/row-->
+</div>
+<!-- /Main -->
+
+<div class="modal" id="noticeModal" role="dialog" aria-hidden="true" aria-labelledby="noticeModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h4 id="noticeModalLabel" class="modal-title">Notice</h4>
+		  </div>
+		  <div id="noticeDiv" class="modal-body"></div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dalog -->
+</div><!-- /.modal -->
+
+<!--login modal-->
+<div id="loginModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="loginModalLabel"
+	 data-backdrop="static">
+	<div class="modal-dialog">
+		<div id="loginModalContent" class="modal-content">
+			<div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="view.resetLoginBody();">×</button>
+			  <h1 id="loginModalLabel" class="text-center">Login</h1>
+			</div>
+			<div class="modal-body">
+			  <form id="loginModalForm" class="form col-md-12 center-block">
+				<div class="form-group">
+				  <label class="sr-only" for="userName">Username</label>
+				  <input id="userName" name="userName" type="text" class="form-control input-lg" placeholder="Username">
+				</div>
+				<div class="form-group">
+				  <label class="sr-only" for="passWord">Password</label>
+				  <input type="password" id="passWord" name="passWord" class="form-control input-lg" placeholder="Password">
+				</div>
+				<div class="form-group">
+				  <button class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
+				  <span><a id="register">Register</a></span><!--<span><a href="#">Need help?</a></span>-->
+				</div>
+				<div id="alertLoginDiv"></div>
+			  </form>
+			</div>
+			<div class="modal-footer">
+			  <div class="col-md-12">
+			  <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="view.resetLoginBody();">Cancel</button>
+			</div>
+			</div>
+		</div>
+		<div id="registerModalContent" class="modal-content">
+			<div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="homeView.closeRegisterModal();">×</button>
+			  <h1 class="text-center">Register</h1>
+			</div>
+			<div class="modal-body">
+			  <form id="registerModalForm" class="form col-md-12 center-block">
+				<div class="form-group">
+				  <label class="sr-only" for="regUserName">Username</label>
+				  <input id="regUserName" name="regUserName" type="text" class="form-control input-lg" placeholder="Username">
+				</div>
+				<div class="form-group">
+				  <label class="sr-only" for="regPassWord">Password</label>
+				  <input type="password" id="regPassWord" name="regPassWord" class="form-control input-lg" placeholder="Password">
+				  <label class="sr-only" for="confirmPassWord">Confirm Password</label>
+				  <input type="password" id="confirmPassWord" name="confirmPassWord" class="form-control input-lg" placeholder="Confirm Password">
+				</div>
+				<div class="form-group">
+				  <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
+				  <!--<span><a href="#">Need help?</a></span>-->
+				</div>
+				<div id="alertRegisterDiv"></div>
+			  </form>
+			</div>
+			<div class="modal-footer">
+			  <div class="col-md-12">
+			  <button class="btn" data-dismiss="modal" aria-hidden="true" onclick="homeView.closeRegisterModal();">Cancel</button>
+			</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<script type='text/javascript'>
+
+	$(document).ready(homeController.initHomePage);
+
+</script>
+</body>
+</html>
