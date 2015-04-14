@@ -1,3 +1,5 @@
+bridgeit.goBridgeItURL = "cloud-query-messenger.html";
+
 window.homeController.registerNewMessagePushGroup = function(username){
     bridgeit.usePushService(window.pushUri, null,
         {
@@ -25,12 +27,12 @@ window.homeModel.newMessagePushCallback = function(){
                 $('<div class="alert alert-info fade in">' +
                     '<button type="button" class="close" data-dismiss="alert" onclick="view.removeNoticesInfoClass();" aria-hidden="true">&times;</button>' +
                     '<small>' +
-                    '<strong>Subject: </strong>'+json.subject+
-                    '<br><strong>Message: </strong>'+json.body+
-                    '<br><strong>Vehicle: </strong>'+json.vehicle+
-                    '<br><strong>Received: </strong>'+updated.toLocaleTimeString() + '' +
+                        '<strong>Subject: </strong>'+json.subject+
+                        '<br><strong>Message: </strong>'+json.body+
+                        '<br><strong>Vehicle: </strong>'+json.vehicle+
+                        '<br><strong>Received: </strong>'+updated.toLocaleTimeString() + '' +
                     '</small>' +
-                    '</div>').hide().fadeIn('slow')
+                '</div>').hide().fadeIn('slow')
             );
         }
     }).catch(function(error){
