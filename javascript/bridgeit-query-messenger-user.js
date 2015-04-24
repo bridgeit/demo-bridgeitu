@@ -35,7 +35,7 @@ window.homeModel.newMessagePushCallback = function(){
                         '<button type="button" class="close" data-dismiss="alert" onclick="view.removeNoticesInfoClass();" aria-hidden="true">&times;</button>' +
                         '<small>' +
                             '<strong>Subject: </strong>'+updates[0].data[0][0].subject +
-                            '<br><strong>Message: </strong>'+updates[0].data[0][0].details +
+                            '<br><strong>Message: </strong>'+updates[0].data[0][0].detail +
                             '<br><strong>Vehicle: </strong>'+json[0].Name +
                             //'<br><strong>Vehicle: </strong>'+updates[0].data[0][0].vehicle +
                             '<br><strong>Received: </strong>'+new Date(updates[0].timeAdded).toLocaleTimeString() +
