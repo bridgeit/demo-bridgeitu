@@ -158,8 +158,10 @@ window.controller = {
 					password: form.passWord.value,
 					account: window.bridgeitAccountName,
 					realm: window.bridgeitRealmName,
-					host: window.bridgeitHost
+					host: window.bridgeitHost,
+                    onSessionExpiry: window.controller.sessionExpiryHandler
 				})
+                .then(function () {bridgeit.io.context.setUserState({username: form.userName.value, state: {"status":"active"}});})
 				.then(isAdmin ? adminController.adminLoginDone : homeController.userLoginDone)
 				.catch(view.loginFail);
 			}else{
@@ -172,6 +174,7 @@ window.controller = {
 	logoutClick: function(isAdmin){
 		return function(event){
 			event.preventDefault();
+            bridgeit.io.context.setUserState({username: localStorage.bridgeitUUsername, state: {"status":"inactive"}});
 			if(isAdmin){
 				adminController.adminLogout();
 			}else{
@@ -179,6 +182,12 @@ window.controller = {
 			}
 		};
 	},
+
+    sessionExpiryHandler: function() {
+        bridgeit.io.context.setUserState({username: localStorage.bridgeitUUsername, state: {"status":"inactive"}});
+        bridgeit.io.auth.disconnect();
+        localStorage.removeItem('bridgeitUUsername');
+    },
 
 	enablePush: function(username){
 		bridgeit.usePushService(window.pushUri, null, 

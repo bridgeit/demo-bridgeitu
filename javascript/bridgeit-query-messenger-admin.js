@@ -10,46 +10,54 @@ window.adminController.adminLoggedIn = function(){
     adminView.loggedIn();
 }
 
-window.adminController.sendMessageSubmit = function(event){
-    event.preventDefault();
-    if(bridgeit.io.auth.isLoggedIn()){
-        var form = this;
-        var c=0;
-        bridgeit.io.documents.findDocuments({
-            collection:'vehicles',
-            queryId:this.messageQuery.options[messageQuery.selectedIndex].value
-        }).then(function(results) {
-            for (var i=0; i<results.length; i++) {
-                bridgeit.io.documents.createDocument({
-                    id: results[i].OwnerId+'_message',
-                    document: {
-                        updated: new Date().getTime(),
-                        subject: this.messageSubject.value,
-                        body: this.messageBody.value,
-                        vehicle: results[i].Name
-                    },
-                    host: window.bridgeitHost
-                }).then(doPush(results[i].OwnerId,results.length-1==i)).catch(adminView.sendMessageFail);
-            }
-        });
-        function doPush(ownerId,isLastPush){
-            c++;
-            bridgeit.push( ownerId,
-            {
-                'subject': form.messageSubject.value,
-                'detail': form.messageBody.value
-            });
-            if (isLastPush) {
-                adminView.pushMessageDone(c);
-            }
-        }
+window.adminController.initMessengerAdminPage = function() {
+    bridgeit.useServices({
+        realm:"bridgeit.u",
+        serviceBase:"http://dev.bridgeit.io"});
+
+    $('#sendMessageFrm').submit(adminController.executeContext);
+    $('#loginModalForm').submit(controller.loginSubmit('admin'));
+    $('#logoutNavbar').click(controller.logoutClick('admin'));
+    // No Admin token
+    if(!bridgeit.io.auth.isLoggedIn()){
+        view.showLoginNavbar();
+        adminView.forceLogin();
+        // Valid Admin token - logged in
+    } else {
+        adminController.adminLoggedIn();
+        // TODO: If admin needs to receive push updates, uncomment line below and implement
+        //controller.registerPushUsernameGroup(sessionStorage.bridgeitUUsername,sessionStorage.bridgeitUToken);
+        controller.enablePush(sessionStorage.bridgeitUUsername,bridgeit.io.auth.getLastAccessToken());
+        // Invalid Admin token - log out
     }
-    else{
-        adminController.adminLogout('expired');
+},
+
+window.adminController.executeContext = function(event) {
+    event.preventDefault();
+    var queryId = document.getElementById('messageQuery').value;
+    var subject = document.getElementById('messageSubject').value;
+    var body = document.getElementById('messageBody').value;
+    if (queryId && subject && body) {
+        var contextExecData = {
+            name: 'studentVehiclePush',
+            data: {
+                'queryId':queryId,
+                "msgSubject": subject,
+                "msgBody": body
+            }
+        };
+        bridgeit.io.context.executeContext(contextExecData)
+        .then(function() {
+            adminView.contextDone();
+        })
+        .catch(function(err) {
+            console.error('Executing context failed',err);
+        })
     }
 }
 
-window.adminView.pushMessageDone = function(num) {
-    var messageTxt = num > 1 || num === 0 ? ' Messages' : ' Message';
-    view.infoAlert(num+messageTxt+' sent.');
+window.adminView.contextDone = function() {
+    view.infoAlert('Action complete.');
 }
+
+
